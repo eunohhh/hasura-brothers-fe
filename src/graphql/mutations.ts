@@ -29,7 +29,6 @@ export const REGISTER_USER = gql`
         update_columns: [email, name, profile_image, updated_at]
       }
     ) {
-      no
       id
       email
       name
@@ -71,7 +70,6 @@ export const UPLOAD_INVITATION_IMAGE = gql`
         user_id: $user_id
       }
     ) {
-      no
       id
       invitation_id
       widget_id
@@ -98,7 +96,6 @@ export const ADMIN_CREATE_TEMPLATE = gql`
     insert_template_one(
       object: { id: $id, invitation_id: $invitation_id, order: $order }
     ) {
-      no
       id
       invitation_id
       order
@@ -110,7 +107,6 @@ export const ADMIN_CREATE_TEMPLATE = gql`
 export const ADMIN_UPDATE_USER_ROLE = gql`
   mutation AdminUpdateUserRole($userId: uuid!, $isAdmin: Boolean!) {
     update_user_by_pk(pk_columns: { id: $userId }, _set: { is_admin: $isAdmin }) {
-      no
       id
       email
       name
@@ -123,7 +119,6 @@ export const ADMIN_UPDATE_USER_ROLE = gql`
 export const ADMIN_UPDATE_TEMPLATE_STAGE = gql`
   mutation AdminUpdateTemplateStage($id: uuid!, $order: Int!) {
     update_template_by_pk(pk_columns: { id: $id }, _set: { order: $order }) {
-      no
       id
       order
       updated_at
@@ -135,11 +130,8 @@ export const ADMIN_UPDATE_TEMPLATE_TITLE = gql`
   mutation AdminUpdateTemplateTitle($invitationId: uuid!, $metaTitle: String!) {
     update_invitation_by_pk(
       pk_columns: { id: $invitationId }
-      _set: { meta_title: $metaTitle }
     ) {
-      no
       id
-      meta_title
       updated_at
     }
   }
@@ -153,19 +145,14 @@ export const ADMIN_DELETE_TEMPLATE = gql`
   }
 `;
 
-export const ADMIN_DUPLICATE_INVITATION = gql`
-  mutation AdminDuplicateInvitation(
-    $newInvitationId: uuid!
-    $sourceInvitationId: uuid!
-  ) {
-    duplicate_invitation(
-      new_invitation_id: $newInvitationId
-      source_invitation_id: $sourceInvitationId
-    ) {
-      id
-    }
-  }
-`;
+// TODO: Implement invitation duplication logic
+// export const ADMIN_DUPLICATE_INVITATION = gql`
+//   mutation AdminDuplicateInvitation($sourceInvitationId: uuid!) {
+//     insert_invitation_one(object: { id: $sourceInvitationId }) {
+//       id
+//     }
+//   }
+// `;
 
 export const ADMIN_UPDATE_TEMPLATE_ORDERS = gql`
   mutation AdminUpdateTemplateOrders($updates: [template_insert_input!]!) {
@@ -185,7 +172,6 @@ export const ADMIN_UPDATE_TEMPLATE_ORDERS = gql`
 export const UPDATE_WIDGET_CONFIG = gql`
   mutation UpdateWidgetConfig($id: uuid!, $config: jsonb!) {
     update_widget_by_pk(pk_columns: { id: $id }, _set: { config: $config }) {
-      no
       id
       config
       updated_at
@@ -196,7 +182,6 @@ export const UPDATE_WIDGET_CONFIG = gql`
 export const UPDATE_WIDGET_INDEX = gql`
   mutation UpdateWidgetIndex($id: uuid!, $index: Int!) {
     update_widget_by_pk(pk_columns: { id: $id }, _set: { index: $index }) {
-      no
       id
       index
       updated_at
@@ -229,7 +214,6 @@ export const ADD_WIDGET = gql`
         config: $config
       }
     ) {
-      no
       id
       invitation_id
       type
@@ -265,7 +249,6 @@ export const SUBMIT_RSVP_ANSWER = gql`
         update_columns: [accepted, form_values, updated_at]
       }
     ) {
-      no
       id
       invitation_id
       user_tracking_id
@@ -302,7 +285,6 @@ export const CREATE_COMMENT = gql`
         password: $password
       }
     ) {
-      no
       id
       invitation_id
       parent_id
@@ -320,7 +302,6 @@ export const UPDATE_COMMENT = gql`
       pk_columns: { id: $id }
       _set: { body: $body, updated_at: "now()" }
     ) {
-      no
       id
       body
       updated_at
@@ -348,6 +329,7 @@ export const CREATE_INVITATION = gql`
   mutation CreateInvitation(
     $id: uuid!
     $user_id: uuid!
+    $share_key: String!
     $layout_type: String
     $brand_color: String
     $font: String
@@ -360,11 +342,10 @@ export const CREATE_INVITATION = gql`
         font: $font
         invitation_editors: { data: { id: $user_id, user_id: $user_id, is_creator: true } }
         invitation_shares: {
-          data: { id: $user_id, share_key: $id, activation_method: "public" }
+          data: { id: $user_id, share_key: $share_key, activation_method: "public" }
         }
       }
     ) {
-      no
       id
       layout_type
       brand_color
@@ -397,7 +378,6 @@ export const UPDATE_INVITATION_EVENT_INFO = gql`
         coord: $coord
       }
     ) {
-      no
       id
       event_at
       full_day_schedule
@@ -421,7 +401,6 @@ export const UPDATE_INVITATION_OWNERS = gql`
     }
     insert_invitation_owner(objects: $owners) {
       returning {
-        no
         id
         invitation_id
         name
@@ -436,23 +415,13 @@ export const UPDATE_INVITATION_OWNERS = gql`
 export const UPDATE_INVITATION_META = gql`
   mutation UpdateInvitationMeta(
     $id: uuid!
-    $meta_title: String
-    $meta_description: String
-    $meta_thumbnail_url: String
   ) {
     update_invitation_by_pk(
       pk_columns: { id: $id }
       _set: {
-        meta_title: $meta_title
-        meta_description: $meta_description
-        meta_thumbnail_url: $meta_thumbnail_url
       }
     ) {
-      no
       id
-      meta_title
-      meta_description
-      meta_thumbnail_url
       updated_at
     }
   }
@@ -469,7 +438,6 @@ export const UPDATE_INVITATION_DESIGN = gql`
       pk_columns: { id: $id }
       _set: { layout_type: $layout_type, brand_color: $brand_color, font: $font }
     ) {
-      no
       id
       layout_type
       brand_color
@@ -510,28 +478,24 @@ export const LOG_INVITATION_VISIT = gql`
         user_tracking_id: $user_tracking_id
       }
     ) {
-      no
       invitation_id
       visit_at
     }
   }
 `;
 
-export const DUPLICATE_INVITATION = gql`
-  mutation DuplicateInvitation(
-    $newInvitationId: uuid!
-    $sourceInvitationId: uuid!
-    $userId: uuid!
-  ) {
-    duplicate_invitation(
-      new_invitation_id: $newInvitationId
-      source_invitation_id: $sourceInvitationId
-      user_id: $userId
-    ) {
-      id
-    }
-  }
-`;
+// TODO: Implement invitation duplication logic
+// export const DUPLICATE_INVITATION = gql`
+//   mutation DuplicateInvitation(
+//     $newInvitationId: uuid!
+//     $sourceInvitationId: uuid!
+//     $userId: uuid!
+//   ) {
+//     insert_invitation_one(object: { id: $newInvitationId }) {
+//       id
+//     }
+//   }
+// `;
 
 // ============================================================================
 // Order Mutations
@@ -547,7 +511,6 @@ export const CONFIRM_ORDER = gql`
       pk_columns: { id: $order_id }
       _set: { status: $status, payment_key: $payment_key }
     ) {
-      no
       id
       status
       payment_key
@@ -559,7 +522,6 @@ export const CONFIRM_ORDER = gql`
 export const CONFIRM_FREE_ORDER = gql`
   mutation ConfirmFreeOrder($order_id: uuid!, $status: String!) {
     update_order_by_pk(pk_columns: { id: $order_id }, _set: { status: $status }) {
-      no
       id
       status
       updated_at

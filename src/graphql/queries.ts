@@ -7,7 +7,6 @@ import { gql } from "@apollo/client";
 export const GET_MY_INFO = gql`
   query GetMyInfo {
     user {
-      no
       id
       email
       name
@@ -15,9 +14,6 @@ export const GET_MY_INFO = gql`
       provider
       provider_id
       accept_marketing
-      meta_thumbnail_url
-      meta_title
-      meta_description
       is_admin
       created_at
       updated_at
@@ -32,7 +28,6 @@ export const GET_MY_INFO = gql`
 export const GET_ALL_TEMPLATES = gql`
   query GetAllTemplates($limit: Int, $offset: Int) {
     template(limit: $limit, offset: $offset, order_by: { order: asc }) {
-      no
       id
       invitation_id
       order
@@ -55,7 +50,6 @@ export const GET_ALL_TEMPLATES = gql`
 export const GET_IMAGE_INFO = gql`
   query GetImageInfo($id: uuid!) {
     invitation_attachment_by_pk(id: $id) {
-      no
       id
       invitation_id
       widget_id
@@ -78,7 +72,6 @@ export const GET_IMAGE_INFO = gql`
 export const ADMIN_GET_TEMPLATES = gql`
   query AdminGetTemplates($limit: Int, $offset: Int) {
     template(limit: $limit, offset: $offset, order_by: { order: asc }) {
-      no
       id
       invitation_id
       order
@@ -104,7 +97,6 @@ export const ADMIN_GET_ALL_INVITATIONS = gql`
       order_by: { created_at: desc }
       where: { removed_at: { _is_null: true } }
     ) {
-      no
       id
       event_at
       full_day_schedule
@@ -136,7 +128,6 @@ export const ADMIN_GET_ALL_INVITATIONS = gql`
 export const ADMIN_GET_INVITATION = gql`
   query AdminGetInvitation($id: uuid!) {
     invitation_by_pk(id: $id) {
-      no
       id
       event_at
       full_day_schedule
@@ -192,7 +183,6 @@ export const ADMIN_SEARCH_USERS = gql`
       }
       limit: $limit
     ) {
-      no
       id
       email
       name
@@ -206,7 +196,6 @@ export const ADMIN_SEARCH_USERS = gql`
 export const ADMIN_GET_ME = gql`
   query AdminGetMe {
     user(where: { is_admin: { _eq: true } }, limit: 1) {
-      no
       id
       email
       name
@@ -249,7 +238,6 @@ export const ADMIN_GET_STATISTICS = gql`
 export const GET_INVITATION = gql`
   query GetInvitation($id: uuid!) {
     invitation_by_pk(id: $id) {
-      no
       id
       event_at
       full_day_schedule
@@ -309,7 +297,6 @@ export const GET_MY_INVITATIONS = gql`
       order_by: { created_at: desc }
     ) {
       invitation {
-        no
         id
         event_at
         place_name
@@ -338,7 +325,6 @@ export const GET_INVITATION_ORDER = gql`
       order_by: { created_at: desc }
       limit: 1
     ) {
-      no
       id
       invitation_id
       status
@@ -357,7 +343,6 @@ export const GET_INVITATION_BY_SHARE_KEY = gql`
       share_key
       visible
       expired_at
-      invitation {
         no
         id
         event_at
@@ -420,7 +405,6 @@ export const GET_ALL_RSVP_ANSWERS = gql`
       where: { invitation_id: { _eq: $invitationId } }
       order_by: { created_at: desc }
     ) {
-      no
       id
       invitation_id
       user_tracking_id
@@ -440,7 +424,6 @@ export const GET_MY_RSVP_ANSWER = gql`
         user_tracking_id: { _eq: $userTrackingId }
       }
     ) {
-      no
       id
       invitation_id
       user_tracking_id
@@ -480,7 +463,6 @@ export const GET_INVITATION_COMMENTS = gql`
       limit: $limit
       offset: $offset
     ) {
-      no
       id
       invitation_id
       parent_id
@@ -491,7 +473,6 @@ export const GET_INVITATION_COMMENTS = gql`
       updated_at
       replies: invitation_comments(
         where: { removed_at: { _is_null: true } }
-        order_by: { created_at: asc }
       ) {
         no
         id
