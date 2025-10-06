@@ -1,0 +1,2055 @@
+{
+  "version": 3,
+  "sources": [
+    {
+      "name": "default",
+      "kind": "postgres",
+      "tables": [
+        {
+          "table": {
+            "name": "coupon",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "coupon_using_histories",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "coupon_id",
+                  "table": {
+                    "name": "coupon_using_history",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "coupon_using_history",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "coupon",
+              "using": {
+                "foreign_key_constraint_on": "coupon_id"
+              }
+            },
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            },
+            {
+              "name": "order",
+              "using": {
+                "foreign_key_constraint_on": "order_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "coupon_using_histories",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "coupon_using_history",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_attachments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_attachment",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_comments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_comment",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_editors",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_editor",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_owners",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_owner",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_rsvp_answers",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_rsvp_answer",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_shares",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_share",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_visit_logs",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "invitation_visit_log",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "orders",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "order",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "templates",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "template",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "widgets",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "invitation_id",
+                  "table": {
+                    "name": "widget",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {},
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "address",
+                  "brand_color",
+                  "coord",
+                  "created_at",
+                  "event_at",
+                  "font",
+                  "full_day_schedule",
+                  "id",
+                  "layout_type",
+                  "place_detail",
+                  "place_name",
+                  "removed_at",
+                  "road_address",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "check": {
+                  "invitation_shares": {
+                    "_and": [
+                      {
+                        "visible": {
+                          "_eq": true
+                        }
+                      },
+                      {
+                        "_or": [
+                          {
+                            "expired_at": {
+                              "_is_null": true
+                            }
+                          },
+                          {
+                            "expired_at": {
+                              "_gte": "now()"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "columns": [
+                  "address",
+                  "brand_color",
+                  "coord",
+                  "created_at",
+                  "event_at",
+                  "font",
+                  "full_day_schedule",
+                  "id",
+                  "layout_type",
+                  "place_detail",
+                  "place_name",
+                  "road_address",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "full_day_schedule",
+                  "address",
+                  "brand_color",
+                  "coord",
+                  "font",
+                  "layout_type",
+                  "place_detail",
+                  "place_name",
+                  "road_address",
+                  "created_at",
+                  "event_at",
+                  "removed_at",
+                  "updated_at",
+                  "id"
+                ],
+                "filter": {
+                  "invitation_editors": {
+                    "user_id": {
+                      "_eq": "X-Hasura-User-Id"
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "address",
+                  "brand_color",
+                  "coord",
+                  "event_at",
+                  "font",
+                  "full_day_schedule",
+                  "layout_type",
+                  "place_detail",
+                  "place_name",
+                  "removed_at",
+                  "road_address",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation_editors": {
+                    "user_id": {
+                      "_eq": "X-Hasura-User-Id"
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation_editors": {
+                    "_and": [
+                      {
+                        "user_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      },
+                      {
+                        "is_creator": {
+                          "_eq": true
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_attachment",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            },
+            {
+              "name": "widget",
+              "using": {
+                "foreign_key_constraint_on": "widget_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "user_id": "x-hasura-User-Id"
+                },
+                "columns": [
+                  "bucket",
+                  "created_at",
+                  "height",
+                  "id",
+                  "invitation_id",
+                  "key",
+                  "mime_type",
+                  "type",
+                  "user_id",
+                  "widget_id",
+                  "width"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "bucket",
+                  "created_at",
+                  "height",
+                  "id",
+                  "invitation_id",
+                  "key",
+                  "mime_type",
+                  "type",
+                  "user_id",
+                  "widget_id",
+                  "width"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "bucket",
+                  "created_at",
+                  "height",
+                  "id",
+                  "invitation_id",
+                  "key",
+                  "mime_type",
+                  "type",
+                  "user_id",
+                  "widget_id",
+                  "width"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "_and": [
+                        {
+                          "visible": {
+                            "_eq": true
+                          }
+                        },
+                        {
+                          "_or": [
+                            {
+                              "expired_at": {
+                                "_is_null": true
+                              }
+                            },
+                            {
+                              "expired_at": {
+                                "_gte": "now()"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "_or": [
+                    {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    },
+                    {
+                      "invitation": {
+                        "invitation_editors": {
+                          "_and": [
+                            {
+                              "user_id": {
+                                "_eq": "X-Hasura-User-Id"
+                              }
+                            },
+                            {
+                              "is_creator": {
+                                "_eq": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_comment",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            },
+            {
+              "name": "invitation_comment",
+              "using": {
+                "foreign_key_constraint_on": "parent_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "invitation_comments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "parent_id",
+                  "table": {
+                    "name": "invitation_comment",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "visible": {
+                        "_eq": true
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "author",
+                  "author_profile_image",
+                  "body",
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "parent_id",
+                  "password",
+                  "removed_at",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "_and": [
+                        {
+                          "visible": {
+                            "_eq": true
+                          }
+                        },
+                        {
+                          "_or": [
+                            {
+                              "expired_at": {
+                                "_is_null": true
+                              }
+                            },
+                            {
+                              "expired_at": {
+                                "_gte": "now()"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "author",
+                  "author_profile_image",
+                  "body",
+                  "password"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "author",
+                  "author_profile_image",
+                  "body",
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "parent_id",
+                  "password",
+                  "removed_at",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "visible": {
+                        "_eq": true
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "author",
+                  "author_profile_image",
+                  "body",
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "parent_id",
+                  "password",
+                  "removed_at",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "visible": {
+                        "_eq": true
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "author",
+                  "author_profile_image",
+                  "body",
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "parent_id",
+                  "password",
+                  "removed_at",
+                  "updated_at"
+                ],
+                "filter": {
+                  "_or": [
+                    {
+                      "password": {
+                        "_is_null": true
+                      }
+                    },
+                    {
+                      "invitation": {
+                        "invitation_editors": {
+                          "_and": [
+                            {
+                              "user_id": {
+                                "_eq": "X-Hasura-User-Id"
+                              }
+                            },
+                            {
+                              "is_creator": {
+                                "_eq": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "_or": [
+                    {
+                      "password": {
+                        "_is_null": true
+                      }
+                    },
+                    {
+                      "invitation": {
+                        "invitation_editors": {
+                          "_and": [
+                            {
+                              "user_id": {
+                                "_eq": "X-Hasura-User-Id"
+                              }
+                            },
+                            {
+                              "is_creator": {
+                                "_eq": true
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_editor",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            },
+            {
+              "name": "user",
+              "using": {
+                "foreign_key_constraint_on": "user_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "_and": [
+                        {
+                          "user_id": {
+                            "_eq": "X-Hasura-User-Id"
+                          }
+                        },
+                        {
+                          "is_creator": {
+                            "_eq": true
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "last_edit_at": "now()"
+                },
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "is_creator",
+                  "last_edit_at",
+                  "user_id"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "is_creator",
+                  "last_edit_at",
+                  "user_id"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "last_edit_at"
+                ],
+                "filter": {
+                  "user_id": {
+                    "_eq": "X-Hasura-User-Id"
+                  }
+                },
+                "check": null
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "_and": [
+                        {
+                          "user_id": {
+                            "_eq": "X-Hasura-User-Id"
+                          }
+                        },
+                        {
+                          "is_creator": {
+                            "_eq": true
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_owner",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "created_at",
+                  "family_name",
+                  "family_name_first",
+                  "father_family_name",
+                  "father_family_name_first",
+                  "father_given_name",
+                  "father_is_deceased",
+                  "father_is_hidden",
+                  "given_name",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "level",
+                  "mother_family_name",
+                  "mother_family_name_first",
+                  "mother_given_name",
+                  "mother_is_deceased",
+                  "mother_is_hidden",
+                  "name",
+                  "role",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "family_name",
+                  "family_name_first",
+                  "father_family_name",
+                  "father_family_name_first",
+                  "father_given_name",
+                  "father_is_deceased",
+                  "father_is_hidden",
+                  "given_name",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "level",
+                  "mother_family_name",
+                  "mother_family_name_first",
+                  "mother_given_name",
+                  "mother_is_deceased",
+                  "mother_is_hidden",
+                  "name",
+                  "role",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "family_name",
+                  "family_name_first",
+                  "father_family_name",
+                  "father_family_name_first",
+                  "father_given_name",
+                  "father_is_deceased",
+                  "father_is_hidden",
+                  "given_name",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "level",
+                  "mother_family_name",
+                  "mother_family_name_first",
+                  "mother_given_name",
+                  "mother_is_deceased",
+                  "mother_is_hidden",
+                  "name",
+                  "role",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "_and": [
+                        {
+                          "visible": {
+                            "_eq": true
+                          }
+                        },
+                        {
+                          "_or": [
+                            {
+                              "expired_at": {
+                                "_is_null": true
+                              }
+                            },
+                            {
+                              "expired_at": {
+                                "_gte": "now()"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "family_name",
+                  "family_name_first",
+                  "father_family_name",
+                  "father_family_name_first",
+                  "father_given_name",
+                  "father_is_deceased",
+                  "father_is_hidden",
+                  "given_name",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "level",
+                  "mother_family_name",
+                  "mother_family_name_first",
+                  "mother_given_name",
+                  "mother_is_deceased",
+                  "mother_is_hidden",
+                  "name",
+                  "role",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_rsvp_answer",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "visible": {
+                        "_eq": true
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "accepted",
+                  "created_at",
+                  "form_values",
+                  "id",
+                  "invitation_id",
+                  "updated_at",
+                  "user_tracking_id"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "_and": [
+                        {
+                          "visible": {
+                            "_eq": true
+                          }
+                        },
+                        {
+                          "_or": [
+                            {
+                              "expired_at": {
+                                "_is_null": true
+                              }
+                            },
+                            {
+                              "expired_at": {
+                                "_gte": "now()"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "accepted",
+                  "form_values",
+                  "invitation_id",
+                  "user_tracking_id"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "accepted",
+                  "created_at",
+                  "form_values",
+                  "id",
+                  "invitation_id",
+                  "updated_at",
+                  "user_tracking_id"
+                ],
+                "filter": {
+                  "_or": [
+                    {
+                      "invitation": {
+                        "invitation_editors": {
+                          "user_id": {
+                            "_eq": "X-Hasura-User-Id"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "user_tracking_id": {
+                        "_eq": "X-Hasura-User-Tracking-Id"
+                      }
+                    }
+                  ]
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "accepted",
+                  "created_at",
+                  "form_values",
+                  "id",
+                  "invitation_id",
+                  "updated_at",
+                  "user_tracking_id"
+                ],
+                "filter": {
+                  "user_tracking_id": {
+                    "_eq": "X-Hasura-User-Tracking-Id"
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_share",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": []
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "activation_method",
+                  "created_at",
+                  "expired_at",
+                  "id",
+                  "invitation_id",
+                  "share_key",
+                  "updated_at",
+                  "visible"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "activation_method",
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "share_key",
+                  "updated_at",
+                  "visible"
+                ],
+                "filter": {
+                  "_and": [
+                    {
+                      "visible": {
+                        "_eq": true
+                      }
+                    },
+                    {
+                      "_or": [
+                        {
+                          "expired_at": {
+                            "_is_null": true
+                          }
+                        },
+                        {
+                          "expired_at": {
+                            "_gte": "now()"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "activation_method",
+                  "created_at",
+                  "expired_at",
+                  "id",
+                  "invitation_id",
+                  "share_key",
+                  "updated_at",
+                  "visible"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "invitation_visit_log",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "order",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "coupon_using_histories",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "order_id",
+                  "table": {
+                    "name": "coupon_using_history",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "payment_key",
+                  "plan",
+                  "status",
+                  "updated_at"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "payment_key",
+                  "plan",
+                  "status",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "payment_key",
+                  "plan",
+                  "status",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "template",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "order",
+                  "updated_at"
+                ],
+                "filter": {}
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "invitation_id",
+                  "order",
+                  "updated_at"
+                ],
+                "filter": {}
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "user",
+            "schema": "public"
+          },
+          "array_relationships": [
+            {
+              "name": "invitation_attachments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "invitation_attachment",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "invitation_editors",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "user_id",
+                  "table": {
+                    "name": "invitation_editor",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "email",
+                  "id",
+                  "name",
+                  "profile_image",
+                  "updated_at"
+                ],
+                "filter": {
+                  "id": {
+                    "_eq": "X-Hasura-User-Id"
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "accept_marketing",
+                  "name",
+                  "profile_image"
+                ],
+                "filter": {
+                  "id": {
+                    "_eq": "X-Hasura-User-Id"
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "widget",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "invitation",
+              "using": {
+                "foreign_key_constraint_on": "invitation_id"
+              }
+            }
+          ],
+          "array_relationships": [
+            {
+              "name": "invitation_attachments",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "widget_id",
+                  "table": {
+                    "name": "invitation_attachment",
+                    "schema": "public"
+                  }
+                }
+              }
+            },
+            {
+              "name": "widget_stickers",
+              "using": {
+                "foreign_key_constraint_on": {
+                  "column": "widget_id",
+                  "table": {
+                    "name": "widget_sticker",
+                    "schema": "public"
+                  }
+                }
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": []
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "config",
+                  "created_at",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "type",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "columns": [
+                  "config",
+                  "created_at",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "type",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_shares": {
+                      "_and": [
+                        {
+                          "visible": {
+                            "_eq": true
+                          }
+                        },
+                        {
+                          "_or": [
+                            {
+                              "expired_at": {
+                                "_is_null": true
+                              }
+                            },
+                            {
+                              "updated_at": {
+                                "_gte": "now()"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "config",
+                  "created_at",
+                  "id",
+                  "index",
+                  "invitation_id",
+                  "type",
+                  "updated_at"
+                ],
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "invitation": {
+                    "invitation_editors": {
+                      "user_id": {
+                        "_eq": "X-Hasura-User-Id"
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        },
+        {
+          "table": {
+            "name": "widget_sticker",
+            "schema": "public"
+          },
+          "object_relationships": [
+            {
+              "name": "widget",
+              "using": {
+                "foreign_key_constraint_on": "widget_id"
+              }
+            }
+          ],
+          "insert_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "check": {
+                  "widget": {
+                    "invitation": {
+                      "invitation_editors": {
+                        "user_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "created_at",
+                  "id",
+                  "image_id",
+                  "left",
+                  "top",
+                  "updated_at",
+                  "widget_id",
+                  "width"
+                ]
+              },
+              "comment": ""
+            },
+            {
+              "role": "viewer",
+              "permission": {
+                "check": {
+                  "widget": {
+                    "invitation": {
+                      "invitation_shares": {
+                        "_and": [
+                          {
+                            "visible": {
+                              "_eq": true
+                            }
+                          },
+                          {
+                            "_or": [
+                              {
+                                "expired_at": {
+                                  "_is_null": true
+                                }
+                              },
+                              {
+                                "expired_at": {
+                                  "_gte": "now()"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "set": {
+                  "created_at": "now()",
+                  "updated_at": "now()"
+                },
+                "columns": [
+                  "created_at",
+                  "id",
+                  "image_id",
+                  "left",
+                  "top",
+                  "updated_at",
+                  "widget_id",
+                  "width"
+                ]
+              },
+              "comment": ""
+            }
+          ],
+          "select_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "image_id",
+                  "left",
+                  "top",
+                  "updated_at",
+                  "widget_id",
+                  "width"
+                ],
+                "filter": {
+                  "widget": {
+                    "invitation": {
+                      "invitation_editors": {
+                        "user_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "update_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "columns": [
+                  "created_at",
+                  "id",
+                  "image_id",
+                  "left",
+                  "top",
+                  "updated_at",
+                  "widget_id",
+                  "width"
+                ],
+                "filter": {
+                  "widget": {
+                    "invitation": {
+                      "invitation_editors": {
+                        "user_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      }
+                    }
+                  }
+                },
+                "check": null,
+                "set": {
+                  "updated_at": "now()"
+                }
+              },
+              "comment": ""
+            }
+          ],
+          "delete_permissions": [
+            {
+              "role": "user",
+              "permission": {
+                "filter": {
+                  "widget": {
+                    "invitation": {
+                      "invitation_editors": {
+                        "user_id": {
+                          "_eq": "X-Hasura-User-Id"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "comment": ""
+            }
+          ]
+        }
+      ],
+      "configuration": {
+        "connection_info": {
+          "database_url": {
+            "from_env": "HASURA_GRAPHQL_DATABASE_URL"
+          },
+          "isolation_level": "read-committed",
+          "pool_settings": {
+            "connection_lifetime": 600,
+            "idle_timeout": 180,
+            "max_connections": 50,
+            "retries": 1
+          },
+          "use_prepared_statements": true
+        }
+      }
+    }
+  ]
+}
