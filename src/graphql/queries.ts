@@ -368,7 +368,7 @@ export const GET_INVITATION_BY_SHARE_KEY = gql`
       share_key
       visible
       expired_at
-        no
+      invitation {
         id
         event_at
         full_day_schedule
@@ -499,7 +499,6 @@ export const GET_INVITATION_COMMENTS = gql`
       replies: invitation_comments(
         where: { removed_at: { _is_null: true } }
       ) {
-        no
         id
         parent_id
         author

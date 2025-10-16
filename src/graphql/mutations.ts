@@ -567,3 +567,5 @@ export const CONFIRM_FREE_ORDER = gql`
     }
   }
 `;
+
+// (removed) Duplicate query was here; keep queries in src/graphql/queries.ts
