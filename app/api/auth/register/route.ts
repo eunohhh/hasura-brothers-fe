@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { SERVER_CONSTS } from "@/constants/server.consts";
 import {
   RegisterUserMutation,
   UpdateUserByProviderMutation,
@@ -10,10 +13,11 @@ import { getAdminClient } from "@/lib/apollo-admin-client";
 export async function POST(request: NextRequest) {
   if (
     !process.env.HASURA_GRAPHQL_ENDPOINT ||
-    !process.env.HASURA_ADMIN_SECRET
+    !process.env.HASURA_ADMIN_SECRET ||
+    !process.env.HASURA_JWT_SECRET
   ) {
     return NextResponse.json(
-      { error: "Hasura GraphQL endpoint or admin secret is not set" },
+      { error: "Hasura GraphQL endpoint/admin secret/JWT secret not set" },
       { status: 500 },
     );
   }
@@ -56,6 +60,30 @@ export async function POST(request: NextRequest) {
     if (!updated) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    const jwt = await new SignJWT({
+      sub: updated.id,
+      email,
+      name,
+      picture: profileImage,
+      "https://hasura.io/jwt/claims": {
+        "x-hasura-allowed-roles": ["user"],
+        "x-hasura-default-role": "user",
+        "x-hasura-user-id": updated.id,
+      },
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("15m")
+      .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
+
+    const cookieStore = await cookies();
+    cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, jwt, {
+      path: "/",
+      maxAge: 15 * 60,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
     return NextResponse.json(updated, { status: 200 });
   }
 
@@ -66,5 +94,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(data.insert_user_one, { status: 200 });
+  const created = data.insert_user_one;
+  const jwt = await new SignJWT({
+    sub: created.id,
+    email,
+    name,
+    picture: profileImage,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["user"],
+      "x-hasura-default-role": "user",
+      "x-hasura-user-id": created.id,
+    },
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("15m")
+    .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
+
+  const cookieStore = await cookies();
+  cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, jwt, {
+    path: "/",
+    maxAge: 15 * 60,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+
+  return NextResponse.json(created, { status: 200 });
 }
