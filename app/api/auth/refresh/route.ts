@@ -3,6 +3,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
+import { GetRefreshTokenByIdQuery } from "@/generated/graphql";
 import {
   DELETE_TOKEN_BY_ID,
   UPDATE_TOKEN_LAST_USED_BY_ID,
@@ -53,17 +54,11 @@ export async function POST(request: NextRequest) {
 
     // ✅ 2. Token ID로 Refresh Token 가져오기
     const client = getClient();
-    const { data: tokenData, error } = await client.query<{
-      user_tokens_by_pk: {
-        id: string;
-        refresh_token: string;
-        user_id: string;
-        user: { id: string; email: string; name: string };
-      } | null;
-    }>({
-      query: GET_REFRESH_TOKEN_BY_ID,
-      variables: { tokenId },
-    });
+    const { data: tokenData, error } =
+      await client.query<GetRefreshTokenByIdQuery>({
+        query: GET_REFRESH_TOKEN_BY_ID,
+        variables: { tokenId },
+      });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
