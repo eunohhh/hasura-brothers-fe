@@ -1,7 +1,10 @@
+// app/api/auth/google/callback/route.ts
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { User } from "@/generated/graphql";
+import { SERVER_CONSTS } from "@/constants/server.consts";
+import { SaveRefreshTokenMutation, User } from "@/generated/graphql";
+import { SAVE_REFRESH_TOKEN } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
 import { getClient } from "@/lib/apollo-client";
 import { GoogleUser } from "@/types/types";
@@ -93,38 +96,79 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: hasuraError.message }, { status: 500 });
     }
 
-    // 4. JWT 생성
+    const userId = hasuraUser?.id || googleUser.id;
+
+    // ✅ 4. Refresh Token이 있으면 DB에 저장
+    let tokenId: string | null = null;
+
+    if (tokens.refresh_token) {
+      const { data: savedToken, error: saveError } =
+        await client.mutate<SaveRefreshTokenMutation>({
+          mutation: SAVE_REFRESH_TOKEN,
+          variables: {
+            object: {
+              user_id: userId,
+              provider: "GOOGLE",
+              refresh_token: tokens.refresh_token,
+              user_agent: request.headers.get("user-agent"),
+              ip_address: request.headers.get("X-Forwarded-For") || null,
+              last_used_at: new Date().toISOString(),
+            },
+          },
+        });
+
+      if (saveError) {
+        console.error("Failed to save refresh token:", saveError);
+      } else {
+        tokenId = savedToken?.insert_user_tokens_one?.id || null;
+      }
+    }
+
+    // 5. JWT 생성 (15분으로 단축)
     const jwt = await new SignJWT({
       sub: googleUser.id,
       email: googleUser.email,
+      name: googleUser.name,
+      picture: googleUser.picture,
       "https://hasura.io/jwt/claims": {
         "x-hasura-allowed-roles": ["user"],
         "x-hasura-default-role": "user",
-        "x-hasura-user-id": hasuraUser?.id || googleUser.id,
+        "x-hasura-user-id": userId,
       },
     })
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("3h")
+      .setExpirationTime("15m") // ✅ 15분으로 변경
       .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
 
-    // 5. 쿠키에 토큰 저장
+    // 6. 쿠키에 토큰 저장
     const cookieStore = await cookies();
-    cookieStore.set("auth-token", jwt, {
+
+    // Access Token (JWT)
+    cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, jwt, {
       path: "/",
-      maxAge: 3 * 60 * 60, // 3시간
-      httpOnly: true, // XSS 공격 방지
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      sameSite: "lax", // CSRF 공격 방지
+      maxAge: 15 * 60, // ✅ 15분
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
     });
 
-    // 6. 리다이렉트
+    // ✅ Refresh Token ID만 저장 (실제 토큰은 DB에)
+    if (tokenId) {
+      cookieStore.set(SERVER_CONSTS.COOKIE_TOKEN_ID, tokenId, {
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60, // 30일
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+
+    // 7. 리다이렉트
     let redirectUrl: string;
 
     if (hasuraUser) {
-      // 기존 유저 - 원래 가려던 페이지로
       redirectUrl = state.redirect_uri || "/";
     } else {
-      // 신규 유저 - 회원가입 페이지로
       const registerParams = new URLSearchParams({
         name: googleUser.name,
         email: googleUser.email,
@@ -138,6 +182,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   } catch (error) {
+    console.error("Callback error:", error);
     return NextResponse.json({ error: "Failed to login" }, { status: 500 });
   }
 }
