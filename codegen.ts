@@ -11,24 +11,18 @@ const config: CodegenConfig = {
       },
     },
   ],
-  documents: ["src/**/*.{ts,tsx,graphql}"],
+  documents: [
+    "src/**/*.{ts,tsx,graphql}",
+    "app/**/*.{ts,tsx,graphql}",
+    "!src/generated/**",
+  ],
+  ignoreNoDocuments: true, // for better experience with the watcher
   generates: {
-    "src/generated/graphql.ts": {
-			plugins: ["typescript", "typescript-operations", "typed-document-node"],
-			config: {
-				fetcher: "graphql-request",
-				exposeDocument: true,
-				exposeQueryKeys: true,
-				exposeMutationKeys: true,
-				scalars: {
-					uuid: "string",
-					timestamptz: "string",
-					jsonb: "Record<string, any>",
-					numeric: "number",
-				},
-			},
-		},
+    "./src/generated/": {
+      preset: "client",
+			// plugins: ["typescript", "typescript-operations"],
+    },
   },
-}
+};
 
 export default config;
