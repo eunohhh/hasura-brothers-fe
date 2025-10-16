@@ -271,3 +271,29 @@ alter table widget_sticker drop constraint if exists fk_widget_sticker_widget;
 alter table widget_sticker add constraint fk_widget_sticker_widget foreign key (widget_id) references widget(id) on delete cascade on update cascade;
 
 
+-- 2025-10-16 추가
+-- SMS 인증 코드 테이블 생성
+CREATE TABLE IF NOT EXISTS sms_verifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    phone VARCHAR(20) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_sms_verifications_phone_code ON sms_verifications (phone, code);
+CREATE INDEX IF NOT EXISTS idx_sms_verifications_expires ON sms_verifications (expires_at);
+CREATE INDEX IF NOT EXISTS idx_sms_verifications_user_id ON sms_verifications (user_id);
+
+-- Foreign Key 제약조건 추가
+ALTER TABLE sms_verifications 
+DROP CONSTRAINT IF EXISTS fk_sms_verifications_user;
+
+ALTER TABLE sms_verifications 
+ADD CONSTRAINT fk_sms_verifications_user 
+FOREIGN KEY (user_id) REFERENCES "user"(id) 
+ON DELETE SET NULL ON UPDATE CASCADE;
