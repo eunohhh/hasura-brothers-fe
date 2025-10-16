@@ -4,6 +4,16 @@ import { gql } from "@apollo/client";
 // User Queries
 // ============================================================================
 
+export const GET_USER_BY_EMAIL = gql`
+  query GetUserByEmail($email: String!) {
+    user(where: { email: { _eq: $email } }) {
+      id
+      email
+      name
+    }
+  }
+`;
+
 export const GET_MY_INFO = gql`
   query GetMyInfo {
     user {
