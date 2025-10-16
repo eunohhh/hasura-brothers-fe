@@ -14,6 +14,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   bigint: { input: any; output: any; }
+  inet: { input: any; output: any; }
   jsonb: { input: Record<string, any>; output: Record<string, any>; }
   numeric: { input: number; output: number; }
   timestamptz: { input: string; output: string; }
@@ -635,6 +636,19 @@ export enum Cursor_Ordering {
   /** descending ordering of the cursor */
   Desc = 'DESC'
 }
+
+/** Boolean expression to compare columns of type "inet". All fields are combined with logical 'AND'. */
+export type Inet_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['inet']['input']>;
+  _gt?: InputMaybe<Scalars['inet']['input']>;
+  _gte?: InputMaybe<Scalars['inet']['input']>;
+  _in?: InputMaybe<Array<Scalars['inet']['input']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']['input']>;
+  _lt?: InputMaybe<Scalars['inet']['input']>;
+  _lte?: InputMaybe<Scalars['inet']['input']>;
+  _neq?: InputMaybe<Scalars['inet']['input']>;
+  _nin?: InputMaybe<Array<Scalars['inet']['input']>>;
+};
 
 /** columns and relationships of "invitation" */
 export type Invitation = {
@@ -3830,6 +3844,10 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
+  /** delete data from the table: "user_tokens" */
+  delete_user_tokens?: Maybe<User_Tokens_Mutation_Response>;
+  /** delete single row from the table: "user_tokens" */
+  delete_user_tokens_by_pk?: Maybe<User_Tokens>;
   /** delete data from the table: "widget" */
   delete_widget?: Maybe<Widget_Mutation_Response>;
   /** delete single row from the table: "widget" */
@@ -3894,6 +3912,10 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  /** insert data into the table: "user_tokens" */
+  insert_user_tokens?: Maybe<User_Tokens_Mutation_Response>;
+  /** insert a single row into the table: "user_tokens" */
+  insert_user_tokens_one?: Maybe<User_Tokens>;
   /** insert data into the table: "widget" */
   insert_widget?: Maybe<Widget_Mutation_Response>;
   /** insert a single row into the table: "widget" */
@@ -3986,6 +4008,12 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  /** update data of the table: "user_tokens" */
+  update_user_tokens?: Maybe<User_Tokens_Mutation_Response>;
+  /** update single row of the table: "user_tokens" */
+  update_user_tokens_by_pk?: Maybe<User_Tokens>;
+  /** update multiples rows of table: "user_tokens" */
+  update_user_tokens_many?: Maybe<Array<Maybe<User_Tokens_Mutation_Response>>>;
   /** update data of the table: "widget" */
   update_widget?: Maybe<Widget_Mutation_Response>;
   /** update single row of the table: "widget" */
@@ -4165,6 +4193,18 @@ export type Mutation_RootDelete_UserArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_User_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_User_TokensArgs = {
+  where: User_Tokens_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_User_Tokens_By_PkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -4386,6 +4426,20 @@ export type Mutation_RootInsert_UserArgs = {
 export type Mutation_RootInsert_User_OneArgs = {
   object: User_Insert_Input;
   on_conflict?: InputMaybe<User_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_User_TokensArgs = {
+  objects: Array<User_Tokens_Insert_Input>;
+  on_conflict?: InputMaybe<User_Tokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_User_Tokens_OneArgs = {
+  object: User_Tokens_Insert_Input;
+  on_conflict?: InputMaybe<User_Tokens_On_Conflict>;
 };
 
 
@@ -4714,6 +4768,26 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_User_TokensArgs = {
+  _set?: InputMaybe<User_Tokens_Set_Input>;
+  where: User_Tokens_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_User_Tokens_By_PkArgs = {
+  _set?: InputMaybe<User_Tokens_Set_Input>;
+  pk_columns: User_Tokens_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_User_Tokens_ManyArgs = {
+  updates: Array<User_Tokens_Updates>;
 };
 
 
@@ -5166,6 +5240,12 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  /** An array relationship */
+  user_tokens: Array<User_Tokens>;
+  /** An aggregate relationship */
+  user_tokens_aggregate: User_Tokens_Aggregate;
+  /** fetch data from the table: "user_tokens" using primary key columns */
+  user_tokens_by_pk?: Maybe<User_Tokens>;
   /** fetch data from the table: "widget" */
   widget: Array<Widget>;
   /** fetch aggregated fields from the table: "widget" */
@@ -5499,6 +5579,29 @@ export type Query_RootUser_AggregateArgs = {
 
 
 export type Query_RootUser_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type Query_RootUser_TokensArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+export type Query_RootUser_Tokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+export type Query_RootUser_Tokens_By_PkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -5946,6 +6049,14 @@ export type Subscription_Root = {
   user_by_pk?: Maybe<User>;
   /** fetch data from the table in a streaming manner: "user" */
   user_stream: Array<User>;
+  /** An array relationship */
+  user_tokens: Array<User_Tokens>;
+  /** An aggregate relationship */
+  user_tokens_aggregate: User_Tokens_Aggregate;
+  /** fetch data from the table: "user_tokens" using primary key columns */
+  user_tokens_by_pk?: Maybe<User_Tokens>;
+  /** fetch data from the table in a streaming manner: "user_tokens" */
+  user_tokens_stream: Array<User_Tokens>;
   /** fetch data from the table: "widget" */
   widget: Array<Widget>;
   /** fetch aggregated fields from the table: "widget" */
@@ -6385,6 +6496,36 @@ export type Subscription_RootUser_StreamArgs = {
 };
 
 
+export type Subscription_RootUser_TokensArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootUser_Tokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootUser_Tokens_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type Subscription_RootUser_Tokens_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<User_Tokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
 export type Subscription_RootWidgetArgs = {
   distinct_on?: InputMaybe<Array<Widget_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -6812,6 +6953,10 @@ export type User = {
   /** An aggregate relationship */
   sms_verifications_aggregate: Sms_Verifications_Aggregate;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** An array relationship */
+  user_tokens: Array<User_Tokens>;
+  /** An aggregate relationship */
+  user_tokens_aggregate: User_Tokens_Aggregate;
 };
 
 
@@ -6874,6 +7019,26 @@ export type UserSms_Verifications_AggregateArgs = {
   where?: InputMaybe<Sms_Verifications_Bool_Exp>;
 };
 
+
+/** columns and relationships of "user" */
+export type UserUser_TokensArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+/** columns and relationships of "user" */
+export type UserUser_Tokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<User_Tokens_Order_By>>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
 /** aggregated selection of "user" */
 export type User_Aggregate = {
   __typename?: 'user_aggregate';
@@ -6918,6 +7083,8 @@ export type User_Bool_Exp = {
   sms_verifications?: InputMaybe<Sms_Verifications_Bool_Exp>;
   sms_verifications_aggregate?: InputMaybe<Sms_Verifications_Aggregate_Bool_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_tokens?: InputMaybe<User_Tokens_Bool_Exp>;
+  user_tokens_aggregate?: InputMaybe<User_Tokens_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "user" */
@@ -6944,6 +7111,7 @@ export type User_Insert_Input = {
   removed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   sms_verifications?: InputMaybe<Sms_Verifications_Arr_Rel_Insert_Input>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_tokens?: InputMaybe<User_Tokens_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
@@ -7013,6 +7181,7 @@ export type User_Order_By = {
   removed_at?: InputMaybe<Order_By>;
   sms_verifications_aggregate?: InputMaybe<Sms_Verifications_Aggregate_Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  user_tokens_aggregate?: InputMaybe<User_Tokens_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: user */
@@ -7082,6 +7251,276 @@ export type User_Stream_Cursor_Value_Input = {
   provider_id?: InputMaybe<Scalars['String']['input']>;
   removed_at?: InputMaybe<Scalars['timestamptz']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+};
+
+/** columns and relationships of "user_tokens" */
+export type User_Tokens = {
+  __typename?: 'user_tokens';
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id: Scalars['uuid']['output'];
+  ip_address?: Maybe<Scalars['inet']['output']>;
+  last_used_at?: Maybe<Scalars['timestamptz']['output']>;
+  provider: Scalars['String']['output'];
+  refresh_token: Scalars['String']['output'];
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** An object relationship */
+  user: User;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id: Scalars['uuid']['output'];
+};
+
+/** aggregated selection of "user_tokens" */
+export type User_Tokens_Aggregate = {
+  __typename?: 'user_tokens_aggregate';
+  aggregate?: Maybe<User_Tokens_Aggregate_Fields>;
+  nodes: Array<User_Tokens>;
+};
+
+export type User_Tokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<User_Tokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type User_Tokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<User_Tokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "user_tokens" */
+export type User_Tokens_Aggregate_Fields = {
+  __typename?: 'user_tokens_aggregate_fields';
+  count: Scalars['Int']['output'];
+  max?: Maybe<User_Tokens_Max_Fields>;
+  min?: Maybe<User_Tokens_Min_Fields>;
+};
+
+
+/** aggregate fields of "user_tokens" */
+export type User_Tokens_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<User_Tokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** order by aggregate values of table "user_tokens" */
+export type User_Tokens_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<User_Tokens_Max_Order_By>;
+  min?: InputMaybe<User_Tokens_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "user_tokens" */
+export type User_Tokens_Arr_Rel_Insert_Input = {
+  data: Array<User_Tokens_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<User_Tokens_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "user_tokens". All fields are combined with a logical 'AND'. */
+export type User_Tokens_Bool_Exp = {
+  _and?: InputMaybe<Array<User_Tokens_Bool_Exp>>;
+  _not?: InputMaybe<User_Tokens_Bool_Exp>;
+  _or?: InputMaybe<Array<User_Tokens_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  ip_address?: InputMaybe<Inet_Comparison_Exp>;
+  last_used_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  provider?: InputMaybe<String_Comparison_Exp>;
+  refresh_token?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<User_Bool_Exp>;
+  user_agent?: InputMaybe<String_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "user_tokens" */
+export enum User_Tokens_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  UserTokensPkey = 'user_tokens_pkey'
+}
+
+/** input type for inserting data into table "user_tokens" */
+export type User_Tokens_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  ip_address?: InputMaybe<Scalars['inet']['input']>;
+  last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  provider?: InputMaybe<Scalars['String']['input']>;
+  refresh_token?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user?: InputMaybe<User_Obj_Rel_Insert_Input>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** aggregate max on columns */
+export type User_Tokens_Max_Fields = {
+  __typename?: 'user_tokens_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  last_used_at?: Maybe<Scalars['timestamptz']['output']>;
+  provider?: Maybe<Scalars['String']['output']>;
+  refresh_token?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['uuid']['output']>;
+};
+
+/** order by max() on columns of table "user_tokens" */
+export type User_Tokens_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  last_used_at?: InputMaybe<Order_By>;
+  provider?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_agent?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type User_Tokens_Min_Fields = {
+  __typename?: 'user_tokens_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['uuid']['output']>;
+  last_used_at?: Maybe<Scalars['timestamptz']['output']>;
+  provider?: Maybe<Scalars['String']['output']>;
+  refresh_token?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  user_agent?: Maybe<Scalars['String']['output']>;
+  user_id?: Maybe<Scalars['uuid']['output']>;
+};
+
+/** order by min() on columns of table "user_tokens" */
+export type User_Tokens_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  last_used_at?: InputMaybe<Order_By>;
+  provider?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_agent?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "user_tokens" */
+export type User_Tokens_Mutation_Response = {
+  __typename?: 'user_tokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<User_Tokens>;
+};
+
+/** on_conflict condition type for table "user_tokens" */
+export type User_Tokens_On_Conflict = {
+  constraint: User_Tokens_Constraint;
+  update_columns?: Array<User_Tokens_Update_Column>;
+  where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "user_tokens". */
+export type User_Tokens_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  ip_address?: InputMaybe<Order_By>;
+  last_used_at?: InputMaybe<Order_By>;
+  provider?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<User_Order_By>;
+  user_agent?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: user_tokens */
+export type User_Tokens_Pk_Columns_Input = {
+  id: Scalars['uuid']['input'];
+};
+
+/** select columns of table "user_tokens" */
+export enum User_Tokens_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  IpAddress = 'ip_address',
+  /** column name */
+  LastUsedAt = 'last_used_at',
+  /** column name */
+  Provider = 'provider',
+  /** column name */
+  RefreshToken = 'refresh_token',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserAgent = 'user_agent',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "user_tokens" */
+export type User_Tokens_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  ip_address?: InputMaybe<Scalars['inet']['input']>;
+  last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  provider?: InputMaybe<Scalars['String']['input']>;
+  refresh_token?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** Streaming cursor of the table "user_tokens" */
+export type User_Tokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: User_Tokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type User_Tokens_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  ip_address?: InputMaybe<Scalars['inet']['input']>;
+  last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  provider?: InputMaybe<Scalars['String']['input']>;
+  refresh_token?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  user_agent?: InputMaybe<Scalars['String']['input']>;
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** update columns of table "user_tokens" */
+export enum User_Tokens_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  IpAddress = 'ip_address',
+  /** column name */
+  LastUsedAt = 'last_used_at',
+  /** column name */
+  Provider = 'provider',
+  /** column name */
+  RefreshToken = 'refresh_token',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserAgent = 'user_agent',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type User_Tokens_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<User_Tokens_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: User_Tokens_Bool_Exp;
 };
 
 /** update columns of table "user" */
@@ -7992,6 +8431,34 @@ export type Widget_Variance_Order_By = {
   index?: InputMaybe<Order_By>;
 };
 
+export type SaveRefreshTokenMutationVariables = Exact<{
+  object: User_Tokens_Insert_Input;
+}>;
+
+
+export type SaveRefreshTokenMutation = { __typename?: 'mutation_root', insert_user_tokens_one?: { __typename?: 'user_tokens', id: string } | null };
+
+export type UpdateTokenLastUsedByIdMutationVariables = Exact<{
+  tokenId: Scalars['uuid']['input'];
+}>;
+
+
+export type UpdateTokenLastUsedByIdMutation = { __typename?: 'mutation_root', update_user_tokens_by_pk?: { __typename?: 'user_tokens', id: string } | null };
+
+export type DeleteTokenByIdMutationVariables = Exact<{
+  tokenId: Scalars['uuid']['input'];
+}>;
+
+
+export type DeleteTokenByIdMutation = { __typename?: 'mutation_root', delete_user_tokens_by_pk?: { __typename?: 'user_tokens', id: string } | null };
+
+export type DeleteAllUserTokensMutationVariables = Exact<{
+  userId: Scalars['uuid']['input'];
+}>;
+
+
+export type DeleteAllUserTokensMutation = { __typename?: 'mutation_root', delete_user_tokens?: { __typename?: 'user_tokens_mutation_response', affected_rows: number } | null };
+
 export type RegisterUserMutationVariables = Exact<{
   id: Scalars['uuid']['input'];
   email?: InputMaybe<Scalars['String']['input']>;
@@ -8235,6 +8702,10 @@ export type ConfirmFreeOrderMutationVariables = Exact<{
 export type ConfirmFreeOrderMutation = { __typename?: 'mutation_root', update_order_by_pk?: { __typename?: 'order', id: string, status?: string | null, updated_at?: string | null } | null };
 
 
+export const SaveRefreshTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveRefreshToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"user_tokens_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_user_tokens_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SaveRefreshTokenMutation, SaveRefreshTokenMutationVariables>;
+export const UpdateTokenLastUsedByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateTokenLastUsedById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"last_used_at"},"value":{"kind":"StringValue","value":"now()","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"updated_at"},"value":{"kind":"StringValue","value":"now()","block":false}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateTokenLastUsedByIdMutation, UpdateTokenLastUsedByIdMutationVariables>;
+export const DeleteTokenByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTokenById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteTokenByIdMutation, DeleteTokenByIdMutationVariables>;
+export const DeleteAllUserTokensDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteAllUserTokens"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_user_tokens"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"user_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"affected_rows"}}]}}]}}]} as unknown as DocumentNode<DeleteAllUserTokensMutation, DeleteAllUserTokensMutationVariables>;
 export const RegisterUserDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RegisterUser"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"profile_image"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"provider"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"provider_id"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accept_marketing"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_user_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"profile_image"},"value":{"kind":"Variable","name":{"kind":"Name","value":"profile_image"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"provider"},"value":{"kind":"Variable","name":{"kind":"Name","value":"provider"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"provider_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"provider_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"accept_marketing"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accept_marketing"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"on_conflict"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"constraint"},"value":{"kind":"EnumValue","value":"user_provider_idx"}},{"kind":"ObjectField","name":{"kind":"Name","value":"update_columns"},"value":{"kind":"ListValue","values":[{"kind":"EnumValue","value":"email"},{"kind":"EnumValue","value":"name"},{"kind":"EnumValue","value":"profile_image"},{"kind":"EnumValue","value":"updated_at"}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"is_admin"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}}]}}]} as unknown as DocumentNode<RegisterUserMutation, RegisterUserMutationVariables>;
 export const UploadInvitationImageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UploadInvitationImage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"widget_id"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mime_type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"bucket"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"key"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"width"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"height"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"user_id"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_invitation_attachment_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"widget_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"widget_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"mime_type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mime_type"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"bucket"},"value":{"kind":"Variable","name":{"kind":"Name","value":"bucket"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"key"},"value":{"kind":"Variable","name":{"kind":"Name","value":"key"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"width"},"value":{"kind":"Variable","name":{"kind":"Name","value":"width"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"height"},"value":{"kind":"Variable","name":{"kind":"Name","value":"height"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"user_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"user_id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"widget_id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"width"}},{"kind":"Field","name":{"kind":"Name","value":"height"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}}]}}]} as unknown as DocumentNode<UploadInvitationImageMutation, UploadInvitationImageMutationVariables>;
 export const AdminCreateTemplateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AdminCreateTemplate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"order"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_template_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"order"},"value":{"kind":"Variable","name":{"kind":"Name","value":"order"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"order"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}}]}}]}}]} as unknown as DocumentNode<AdminCreateTemplateMutation, AdminCreateTemplateMutationVariables>;
