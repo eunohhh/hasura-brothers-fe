@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
 import { DELETE_ALL_USER_TOKENS } from "@/graphql/mutations";
-import { getClient } from "@/lib/apollo-client";
+import { getAdminClient } from "@/lib/apollo-admin-client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const userId = claims["x-hasura-user-id"];
 
     // 모든 refresh token 삭제
-    const client = getClient();
+    const client = getAdminClient();
     const { error: deleteError } = await client.mutate({
       mutation: DELETE_ALL_USER_TOKENS,
       variables: { userId },

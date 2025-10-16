@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
 import { DELETE_TOKEN_BY_ID } from "@/graphql/mutations";
-import { getClient } from "@/lib/apollo-client";
+import { getAdminClient } from "@/lib/apollo-admin-client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     // DB에서 refresh token 삭제
     if (tokenId) {
-      const client = getClient();
+      const client = getAdminClient();
       await client.mutate({
         mutation: DELETE_TOKEN_BY_ID,
         variables: { tokenId },

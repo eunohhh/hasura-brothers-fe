@@ -63,10 +63,6 @@ export const REGISTER_USER = gql`
         provider_id: $provider_id
         accept_marketing: $accept_marketing
       }
-      on_conflict: {
-        constraint: user_provider_idx
-        update_columns: [email, name, profile_image, updated_at]
-      }
     ) {
       id
       email
@@ -74,6 +70,31 @@ export const REGISTER_USER = gql`
       profile_image
       is_admin
       created_at
+    }
+  }
+`;
+
+export const UPDATE_USER_BY_PROVIDER = gql`
+  mutation UpdateUserByProvider(
+    $provider: String!
+    $provider_id: String!
+    $email: String
+    $name: String
+    $profile_image: String
+  ) {
+    update_user(
+      where: { provider: { _eq: $provider }, provider_id: { _eq: $provider_id } }
+      _set: { email: $email, name: $name, profile_image: $profile_image, updated_at: "now()" }
+    ) {
+      affected_rows
+      returning {
+        id
+        email
+        name
+        profile_image
+        is_admin
+        created_at
+      }
     }
   }
 `;

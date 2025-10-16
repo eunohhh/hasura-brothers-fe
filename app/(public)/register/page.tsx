@@ -71,7 +71,7 @@ export default function RegisterPage() {
 
       <button
         type="submit"
-        className="w-full rounded bg-blue-600 p-2 text-white hover:bg-blue-700"
+        className="w-full cursor-pointer rounded bg-blue-600 p-2 text-white hover:bg-blue-700"
       >
         가입하기
       </button>

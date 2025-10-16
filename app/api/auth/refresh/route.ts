@@ -9,7 +9,7 @@ import {
   UPDATE_TOKEN_LAST_USED_BY_ID,
 } from "@/graphql/mutations";
 import { GET_REFRESH_TOKEN_BY_ID } from "@/graphql/queries";
-import { getClient } from "@/lib/apollo-client";
+import { getAdminClient } from "@/lib/apollo-admin-client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ✅ 2. Token ID로 Refresh Token 가져오기
-    const client = getClient();
+    const client = getAdminClient();
     const { data: tokenData, error } =
       await client.query<GetRefreshTokenByIdQuery>({
         query: GET_REFRESH_TOKEN_BY_ID,

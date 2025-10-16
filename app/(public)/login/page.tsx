@@ -3,6 +3,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -18,9 +19,13 @@ export default function LoginPage() {
   };
 
   return (
-    <button type="button" onClick={handleGoogleLogin}>
+    <Button
+      type="button"
+      onClick={handleGoogleLogin}
+      className="cursor-pointer bg-white text-black"
+    >
       <FaGoogle />
       Google로 로그인
-    </button>
+    </Button>
   );
 }

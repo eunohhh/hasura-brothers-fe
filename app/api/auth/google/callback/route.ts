@@ -3,10 +3,13 @@ import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
-import { SaveRefreshTokenMutation, User } from "@/generated/graphql";
+import {
+  GetUserByEmailQuery,
+  SaveRefreshTokenMutation,
+} from "@/generated/graphql";
 import { SAVE_REFRESH_TOKEN } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
-import { getClient } from "@/lib/apollo-client";
+import { getAdminClient } from "@/lib/apollo-admin-client";
 import { GoogleUser } from "@/types/types";
 
 export async function GET(request: NextRequest) {
@@ -83,20 +86,30 @@ export async function GET(request: NextRequest) {
     const googleUser: GoogleUser = await userInfoResponse.json();
 
     // 3. Hasura에서 유저 확인
-    const client = getClient();
+    const client = getAdminClient();
 
-    const { data: hasuraUser, error: hasuraError } = await client.query<
-      Partial<User>
-    >({
+    const { data: hasuraUser } = await client.query<GetUserByEmailQuery>({
       query: GET_USER_BY_EMAIL,
       variables: { email: googleUser.email },
     });
 
-    if (hasuraError) {
-      return NextResponse.json({ error: hasuraError.message }, { status: 500 });
+    const foundUser = hasuraUser?.user?.[0];
+
+    // 등록되지 않은 유저면 토큰 저장/쿠키 발급 없이 회원가입으로 이동
+    if (!foundUser) {
+      const registerParams = new URLSearchParams({
+        name: googleUser.name,
+        email: googleUser.email,
+        providerId: googleUser.id,
+        provider: "GOOGLE",
+        profileImage: googleUser.picture || "",
+      });
+
+      const redirectUrl = `${state.register_uri}?${registerParams.toString()}`;
+      return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
 
-    const userId = hasuraUser?.id || googleUser.id;
+    const userId = foundUser.id; // uuid
 
     // ✅ 4. Refresh Token이 있으면 DB에 저장
     let tokenId: string | null = null;
@@ -124,9 +137,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. JWT 생성 (15분으로 단축)
+    // 5. JWT 생성 (15분으로 단축) - sub와 x-hasura-user-id는 uuid 사용
     const jwt = await new SignJWT({
-      sub: googleUser.id,
+      sub: userId,
       email: googleUser.email,
       name: googleUser.name,
       picture: googleUser.picture,
