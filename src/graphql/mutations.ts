@@ -1,6 +1,45 @@
 import { gql } from "@apollo/client";
 
 // ============================================================================
+// Auth Mutations
+// ============================================================================
+
+export const SAVE_REFRESH_TOKEN = gql`
+  mutation SaveRefreshToken($object: user_tokens_insert_input!) {
+    insert_user_tokens_one(object: $object) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_TOKEN_LAST_USED_BY_ID = gql`
+  mutation UpdateTokenLastUsedById($tokenId: uuid!) {
+    update_user_tokens_by_pk(
+      pk_columns: { id: $tokenId }
+      _set: { last_used_at: "now()", updated_at: "now()" }
+    ) {
+      id
+    }
+  }
+`;
+
+export const DELETE_TOKEN_BY_ID = gql`
+  mutation DeleteTokenById($tokenId: uuid!) {
+    delete_user_tokens_by_pk(id: $tokenId) {
+      id
+    }
+  }
+`;
+
+export const DELETE_ALL_USER_TOKENS = gql`
+  mutation DeleteAllUserTokens($userId: uuid!) {
+    delete_user_tokens(where: { user_id: { _eq: $userId } }) {
+      affected_rows
+    }
+  }
+`;
+
+// ============================================================================
 // User Mutations
 // ============================================================================
 
