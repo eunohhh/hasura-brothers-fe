@@ -297,3 +297,31 @@ ALTER TABLE sms_verifications
 ADD CONSTRAINT fk_sms_verifications_user 
 FOREIGN KEY (user_id) REFERENCES "user"(id) 
 ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- 2025-10-16 추가
+-- token 테이블 생성
+-- user_tokens 테이블 생성
+CREATE TABLE IF NOT EXISTS user_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    provider VARCHAR(50) NOT NULL,
+    refresh_token TEXT NOT NULL,
+    user_agent TEXT,
+    ip_address INET,
+    last_used_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_user_tokens_user_id ON user_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_tokens_id ON user_tokens(id);
+
+-- Foreign Key 제약조건 추가
+ALTER TABLE user_tokens 
+DROP CONSTRAINT IF EXISTS fk_user_tokens_user;
+
+ALTER TABLE user_tokens 
+ADD CONSTRAINT fk_user_tokens_user 
+FOREIGN KEY (user_id) REFERENCES "user"(id) 
+ON DELETE CASCADE ON UPDATE CASCADE;
