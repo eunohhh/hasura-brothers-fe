@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/authed";
 
   const handleGoogleLogin = () => {
     const params = new URLSearchParams({

@@ -26,7 +26,7 @@ export default function RegisterPage() {
 
     if (response.ok) {
       // 회원가입 성공 - 홈으로 이동
-      window.location.href = "/";
+      window.location.href = "/authed";
     }
   };
 
