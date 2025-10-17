@@ -16,8 +16,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const redirectUri =
-      searchParams.get("redirect_uri") || process.env.GOOGLE_CALLBACK_URL!;
+    const redirectUri = searchParams.get("redirect_uri") || "/";
     const registerUri = searchParams.get("register_uri") || "/register";
 
     if (!redirectUri || !registerUri) {
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
     // params에 클라이언트 정보 담기
     const params = new URLSearchParams({
       client_id: process.env.GOOGLE_CLIENT_ID!,
-      redirect_uri: redirectUri,
+      redirect_uri: process.env.GOOGLE_CALLBACK_URL!,
       response_type: "code",
       scope: "openid email profile",
       access_type: "offline",

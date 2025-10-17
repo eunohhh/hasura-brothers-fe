@@ -209,22 +209,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 7. 리다이렉트
-    let redirectUrl: string;
-
-    if (hasuraUser) {
-      redirectUrl = state.redirect_uri || "/";
-    } else {
-      const registerParams = new URLSearchParams({
-        name: googleUser.name,
-        email: googleUser.email,
-        providerId: googleUser.id,
-        provider: "GOOGLE",
-        profileImage: googleUser.picture || "",
-      });
-
-      redirectUrl = `${state.register_uri}?${registerParams.toString()}`;
-    }
-
+    const redirectUrl = state.redirect_uri || "/";
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   } catch (error) {
     console.error("Callback error:", error);
