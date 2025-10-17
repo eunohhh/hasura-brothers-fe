@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     // 2. 유저 정보 가져오기
     const userInfoResponse = await fetch(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
+      "https://openidconnect.googleapis.com/v1/userinfo",
       {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       },
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. JWT 생성 (15분으로 단축) - sub와 x-hasura-user-id는 uuid 사용
+    // 5. JWT 생성 (10분으로 단축) - sub와 x-hasura-user-id는 uuid 사용
     const jwt = await new SignJWT({
       sub: userId,
       email: googleUser.email,
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
       },
     })
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("15m") // ✅ 15분으로 변경
+      .setExpirationTime("10m") // ✅ 10분으로 변경
       .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
 
     // 6. 쿠키에 토큰 저장
