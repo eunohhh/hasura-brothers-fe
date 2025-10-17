@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function RegisterTemplate() {
   const searchParams = useSearchParams();
@@ -69,12 +70,9 @@ export default function RegisterTemplate() {
         </div>
       )}
 
-      <button
-        type="submit"
-        className="w-full cursor-pointer rounded bg-blue-600 p-2 text-white hover:bg-blue-700"
-      >
+      <Button type="submit" className="w-full cursor-pointer">
         가입하기
-      </button>
+      </Button>
     </form>
   );
 }

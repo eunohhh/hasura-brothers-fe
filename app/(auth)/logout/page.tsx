@@ -17,11 +17,7 @@ export default function LogoutPage() {
   };
 
   return (
-    <Button
-      type="button"
-      onClick={handleLogout}
-      className="cursor-pointer bg-white text-black"
-    >
+    <Button type="button" onClick={handleLogout} className="cursor-pointer">
       Logout
     </Button>
   );
