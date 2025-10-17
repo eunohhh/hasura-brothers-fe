@@ -6,11 +6,15 @@ import {
   InMemoryCache,
 } from "@apollo/client-integration-nextjs";
 import { createApolloLinks } from "./apollo-links";
+import { getTokenFromLocalStorage } from "./client-utils";
 
 function makeClient() {
   return new ApolloClient({
     cache: new InMemoryCache(),
-    link: createApolloLinks({ isServer: false }),
+    link: createApolloLinks({
+      isServer: false,
+      getToken: getTokenFromLocalStorage,
+    }),
   });
 }
 

@@ -8,22 +8,25 @@ import { ErrorLink } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
 import { SERVER_CONSTS } from "@/constants/server.consts";
 import { getTokenFromLocalStorage } from "./client-utils";
-import { getTokenFromCookie } from "./server-utils";
 
 export interface CreateLinksOptions {
   isServer: boolean;
+  getToken: (
+    cookieName: string,
+  ) => Promise<string | null | undefined> | string | null | undefined;
 }
 
 export function createApolloLinks(options: CreateLinksOptions) {
-  const { isServer } = options;
+  const { isServer, getToken } = options;
   const prefix = isServer ? "🖥️ [Server]" : "💻 [Client]";
 
   // 1. Auth Link
   const authLink = new SetContextLink(async (prevContext, operation) => {
     let token: string | null | undefined;
-    if (isServer) {
-      token = await getTokenFromCookie(SERVER_CONSTS.COOKIE_AUTH_TOKEN);
-    } else {
+    if (getToken) {
+      const tokenResult = getToken(SERVER_CONSTS.COOKIE_AUTH_TOKEN);
+      token = tokenResult instanceof Promise ? await tokenResult : tokenResult;
+    } else if (!isServer && typeof window !== "undefined") {
       token = getTokenFromLocalStorage(SERVER_CONSTS.COOKIE_AUTH_TOKEN);
     }
 
