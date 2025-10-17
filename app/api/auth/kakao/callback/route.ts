@@ -10,6 +10,7 @@ import {
 import { SAVE_REFRESH_TOKEN } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { getURL } from "@/lib/server-utils";
 import { KakaoUser } from "@/types/types";
 
 export async function GET(request: NextRequest) {
@@ -225,9 +226,19 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 7. 리다이렉트
-    const redirectUrl = state.redirect_uri || "/";
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+    // 7. 리다이렉트 (토큰을 쿼리 파라미터로 전달)
+    const redirectParams = new URLSearchParams({
+      token: jwt,
+      success: "true",
+      redirect_uri: state.redirect_uri || "/",
+    });
+
+    // 기본 리다이렉트 경로 -> 무조건 고정 페이지여야 하고 토큰, state.redirect_uri 를 params로 전달
+    const clientCallbackUrl = getURL();
+
+    return NextResponse.redirect(
+      `${clientCallbackUrl}/callback?${redirectParams.toString()}`,
+    );
   } catch (error) {
     console.error("Kakao callback error:", error);
     return NextResponse.json({ error: "Failed to login" }, { status: 500 });

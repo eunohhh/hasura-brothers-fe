@@ -6,8 +6,12 @@ import {
 import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
+import { CLIENT_CONSTS } from "@/constants/client.consts";
 import { SERVER_CONSTS } from "@/constants/server.consts";
-import { getTokenFromLocalStorage } from "./client-utils";
+import {
+  getTokenFromLocalStorage,
+  removeTokenFromLocalStorage,
+} from "./client-utils";
 
 export interface CreateLinksOptions {
   isServer: boolean;
@@ -51,7 +55,7 @@ export function createApolloLinks(options: CreateLinksOptions) {
         // 클라이언트에서만 UI 처리
         if (!isServer && typeof window !== "undefined") {
           if (extensions?.code === "UNAUTHENTICATED") {
-            localStorage.removeItem("token");
+            removeTokenFromLocalStorage(CLIENT_CONSTS.LOCAL_STORAGE_AUTH_TOKEN);
             window.location.href = "/login";
           } else if (extensions?.code === "FORBIDDEN") {
             // toast.error('권한이 없습니다')
