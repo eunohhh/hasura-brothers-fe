@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
     try {
       const verified = await jwtVerify(
         token,
-        new TextEncoder().encode(process.env.JWT_SECRET!)
+        new TextEncoder().encode(process.env.HASURA_JWT_SECRET!)
       );
 
       // ✅ 만료 5분 전이면 자동 갱신 시도
