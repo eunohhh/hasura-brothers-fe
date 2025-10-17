@@ -20,7 +20,7 @@
 ## Turn 2
 
 **User**  
-Firebase Auth는 클라이언트 SDK 중심이라 SSR/Edge 환경에서getIdToken→verifyIdToken 과정을 직접 연결해야 한다는 것이, SDK 자체가 client side 에 맞춰져 있어서 그렇죠?
+Firebase Auth는 클라이언트 SDK 중심이라 SSR/Edge 환경에서 getIdToken→verifyIdToken 과정을 직접 연결해야 한다는 것이, SDK 자체가 client side 에 맞춰져 있어서 그렇죠?
 
 **Assistant**  
 맞아요. Firebase Auth는 애초에 브라우저나 모바일 앱에서 돌아가는 클라이언트 SDK를 기준으로 설계돼 있습니다. 그래서 토큰 발급은 클라이언트 SDK(firebase/auth)가 담당하고, 서버에서는 별도 패키지(firebase-admin)로 그 토큰을 검증하는 흐름을 수동으로 이어 붙여야 해요. Next.js App Router처럼 SSR/Edge 코드에선
@@ -77,8 +77,317 @@ Hasura와 조합하려면 Hasura가 기대하는 JWT 스키마에 맞춰 Firebas
 
 ## Turn 6
 
-**User**  
-이 대화 내용을 md 로 저장해주실 수 있어요?
+```bash
+# 1) 패키지
+pnpm add firebase
+pnpm add -D firebase-admin
+```
 
-**Assistant**  
-(현재 파일이 바로 그 결과물입니다.)
+```bash
+# 2) .env (예시)
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+# admin용 (서비스 계정)
+FIREBASE_PROJECT_ID=...
+FIREBASE_CLIENT_EMAIL=...
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+# 세션 쿠키 수명(일·시간 단위 예시)
+SESSION_COOKIE_MAX_DAYS=7
+```
+
+```ts
+// 3) lib/firebaseClient.ts  (client only)
+"use client";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+const clientConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+};
+
+export const firebaseApp =
+  getApps().length ? getApps()[0] : initializeApp(clientConfig);
+
+export const firebaseAuth = getAuth(firebaseApp);
+```
+
+```ts
+// 4) lib/firebaseAdmin.ts (server only)
+import { cert, getApps, initializeApp, App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+let adminApp: App;
+if (!getApps().length) {
+  adminApp = initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process
+        .env
+        .FIREBASE_PRIVATE_KEY!
+        // GitHub/AWS 등 개행 이슈 방지
+        .replace(/\\n/g, "\n"),
+    }),
+  });
+} else {
+  adminApp = getApps()[0]!;
+}
+
+export const adminAuth = getAuth(adminApp);
+```
+
+```ts
+// 5) app/api/session/route.ts
+// 클라이언트가 ID 토큰을 보내오면, 서버가 "Firebase 세션 쿠키"로 교체해 줍니다.
+// 이후 SSR은 이 쿠키만으로 사용자 식별이 가능.
+// runtime은 Node.js (Edge 불가: firebase-admin 사용)
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { adminAuth } from "@/lib/firebaseAdmin";
+
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  try {
+    const { idToken } = await req.json();
+    if (!idToken) return NextResponse.json({ error: "missing idToken" }, { status: 400 });
+
+    const maxDays = Number(process.env.SESSION_COOKIE_MAX_DAYS ?? "7");
+    const expiresIn = maxDays * 24 * 60 * 60 * 1000;
+
+    const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
+    const cookieStore = await cookies();
+    // 보안 쿠키 설정
+    cookieStore.set("session", sessionCookie, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: Math.floor(expiresIn / 1000),
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: "createSessionCookie failed" }, { status: 401 });
+  }
+}
+
+export async function DELETE() {
+  // 로그아웃: 쿠키 제거
+  const cookieStore = await cookies();
+  cookieStore.set("session", "", { path: "/", maxAge: 0 });
+  return NextResponse.json({ ok: true });
+}
+```
+
+```ts
+// 6) lib/getUserOnServer.ts (SSR에서 현재 사용자 가져오기)
+import { cookies } from "next/headers";
+import { adminAuth } from "@/lib/firebaseAdmin";
+
+export type ServerUser =
+  | { uid: string; email?: string | null; claims: Record<string, unknown> }
+  | null;
+
+export async function getUserOnServer(): Promise<ServerUser> {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session")?.value;
+  if (!session) return null;
+
+  try {
+    // 세션 쿠키 검증 (revoked: false → 일반 검증)
+    const decoded = await adminAuth.verifySessionCookie(session, true);
+    return {
+      uid: decoded.uid,
+      email: decoded.email ?? null,
+      claims: decoded,
+    };
+  } catch {
+    return null;
+  }
+}
+```
+
+```ts
+// 7) middleware.ts (선택) - 보호 라우트 리다이렉트
+// 세션 쿠키가 없으면 /login 으로
+import { NextResponse, NextRequest } from "next/server";
+
+const PROTECTED_PREFIXES = ["/dashboard", "/account"];
+
+export function middleware(req: NextRequest) {
+  const url = req.nextUrl;
+  const isProtected = PROTECTED_PREFIXES.some((p) => url.pathname.startsWith(p));
+
+  if (!isProtected) return NextResponse.next();
+
+  const hasSession = req.cookies.get("session");
+  if (!hasSession) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("redirect", url.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/account/:path*"],
+};
+```
+
+```tsx
+// 8) app/layout.tsx (서버 컴포넌트) - 전역 사용자 프리패치 (선택)
+import type { ReactNode } from "react";
+import { getUserOnServer } from "@/lib/getUserOnServer";
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const user = await getUserOnServer();
+
+  return (
+    <html lang="ko">
+      <body>
+        {/* 필요 시 Server Components → Client로 전달 */}
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx
+// 9) app/page.tsx (서버 컴포넌트) - SSR에서 사용자 접근
+import { getUserOnServer } from "@/lib/getUserOnServer";
+import Link from "next/link";
+
+export default async function Home() {
+  const user = await getUserOnServer();
+
+  return (
+    <main>
+      {user ? (
+        <>
+          <h1>안녕하세요, {user.email ?? user.uid}</h1>
+          <form action="/api/session" method="POST" />
+          <form>
+            <button
+              formAction="/api/session"
+              formMethod="DELETE"
+              // route handler DELETE 호출
+              onClick={() => {}}
+            >
+              로그아웃
+            </button>
+          </form>
+          <Link href="/dashboard">대시보드로</Link>
+        </>
+      ) : (
+        <>
+          <h1>로그인이 필요합니다</h1>
+          <Link href="/login">로그인</Link>
+        </>
+      )}
+    </main>
+  );
+}
+```
+
+```tsx
+// 10) app/login/page.tsx (클라이언트에서 Firebase Auth로 로그인 후 세션 고정)
+"use client";
+
+import { firebaseAuth } from "@/lib/firebaseClient";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+
+export default function LoginPage() {
+  const onGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const cred = await signInWithPopup(firebaseAuth, provider);
+    const idToken = await cred.user.getIdToken(); // 최신 ID 토큰
+    await fetch("/api/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+    // 이제 서버 쿠키가 설정됨 → SSR 가능
+    location.assign("/dashboard");
+  };
+
+  return (
+    <main>
+      <button onClick={onGoogle}>구글로 로그인</button>
+    </main>
+  );
+}
+```
+
+```tsx
+// 11) app/dashboard/page.tsx (보호 페이지: SSR)
+import { getUserOnServer } from "@/lib/getUserOnServer";
+
+export const runtime = "nodejs"; // admin 사용 시 명시 권장
+
+export default async function Dashboard() {
+  const user = await getUserOnServer(); // middleware에서 1차 필터, 여기서 2차 보강
+  if (!user) {
+    // 실제로는 미들웨어가 막지만, 직접 접근 대비
+    return <p>권한 없음</p>;
+  }
+
+  return (
+    <section>
+      <h1>대시보드</h1>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+    </section>
+  );
+}
+```
+
+```tsx
+// 12) (선택) 클라이언트에서 "현재 사용자" 구독 훅
+// 세션 쿠키 기반 SSR과 별개로, 클라 실시간 상태가 필요할 때 사용
+"use client";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { firebaseAuth } from "@/lib/firebaseClient";
+
+export function useClientUser() {
+  const [user, setUser] = useState<User | null>(firebaseAuth.currentUser);
+
+  useEffect(() => {
+    return onAuthStateChanged(firebaseAuth, async (u) => {
+      setUser(u);
+      // 필요시, 토큰 갱신 → 세션 재발급 (silent refresh)
+      // const idToken = u && (await u.getIdToken());
+      // await fetch("/api/session", { method: "POST", ... });
+    });
+  }, []);
+
+  return user;
+}
+```
+
+---
+
+## **동작 흐름 요약**
+
+1. **CSR 로그인**: 클라이언트에서 signInWithPopup → user.getIdToken()
+2. **서버 세션 확립**: /api/session POST로 ID 토큰 전달 → 서버가 createSessionCookie로 **HTTP-only 쿠키** 발급
+3. **SSR 식별**: 서버 컴포넌트/라우트에서 cookies()로 session 읽고 verifySessionCookie로 사용자 판별
+4. **보호 라우팅**: middleware로 쿠키 없으면 /login 리다이렉트
+5. **로그아웃**: /api/session DELETE → 쿠키 만료
+  
+
+> 팁
+
+- > **Edge 런타임에서는 firebase-admin이 동작하지 않으니** SSR/Route Handler는 runtime = "nodejs"를 사용하세요.
+- > 만료 임박 시 클라이언트에서 조용히 getIdToken() → /api/session POST로 **세션 쿠키 갱신** 루틴을 넣으면 UX가 좋아집니다.
+- > Hasura 등 외부 백엔드와 연동 시, 서버에서 검증한 uid/claims로 권한 매핑을 수행하면 됩니다. (Custom Claims도 가능)
+
+
+
+
