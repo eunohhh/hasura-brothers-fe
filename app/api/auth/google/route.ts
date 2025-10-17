@@ -1,4 +1,10 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  createCodeChallengeS256,
+  createCodeVerifier,
+  randomState,
+} from "@/lib/pkce";
 
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CALLBACK_URL) {
@@ -10,7 +16,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const redirectUri = searchParams.get("redirect_uri") || "/";
+    const redirectUri =
+      searchParams.get("redirect_uri") || process.env.GOOGLE_CALLBACK_URL!;
     const registerUri = searchParams.get("register_uri") || "/register";
 
     if (!redirectUri || !registerUri) {
@@ -20,36 +27,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // state에 클라이언트 정보 담기
-    const state = encodeURIComponent(
-      JSON.stringify({
-        protocol: request.nextUrl.protocol.replace(":", ""),
-        host: request.nextUrl.host,
-        redirect_uri: redirectUri,
-        register_uri: registerUri,
-      }),
-    );
+    // state를 JSON 객체로 구성
+    const stateData = {
+      redirect_uri: redirectUri,
+      register_uri: registerUri,
+      nonce: randomState(),
+    };
+    const state = encodeURIComponent(JSON.stringify(stateData));
 
-    const googleAuthUrl = new URL(
-      "https://accounts.google.com/o/oauth2/v2/auth",
-    );
-    googleAuthUrl.searchParams.append(
-      "client_id",
-      process.env.GOOGLE_CLIENT_ID!,
-    );
-    googleAuthUrl.searchParams.append(
-      "redirect_uri",
-      process.env.GOOGLE_CALLBACK_URL!,
-    );
-    googleAuthUrl.searchParams.append("response_type", "code");
-    googleAuthUrl.searchParams.append("scope", "email profile");
-    googleAuthUrl.searchParams.append("state", state);
-    // ✅ Refresh Token 관련 설정
-    googleAuthUrl.searchParams.append("access_type", "offline"); // refresh token 받기
-    googleAuthUrl.searchParams.append("prompt", "consent"); // 매번 동의 화면 (항상 refresh token 받기 위해)
-    // 또는 'prompt=select_account'로 계정 선택만 표시
+    const codeVerifier = createCodeVerifier();
+    const codeChallenge = createCodeChallengeS256(codeVerifier);
 
-    return NextResponse.redirect(googleAuthUrl.toString());
+    // PKCE·state를 HttpOnly 쿠키에 5분 보관
+    const jar = await cookies();
+    jar.set("oauth_state", state, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      maxAge: 300,
+      path: "/",
+    });
+    jar.set("pkce_verifier", codeVerifier, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      maxAge: 300,
+      path: "/",
+    });
+
+    // params에 클라이언트 정보 담기
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid email profile",
+      access_type: "offline",
+      include_granted_scopes: "true",
+      prompt: "consent",
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+      state,
+    });
+
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+    return NextResponse.redirect(googleAuthUrl);
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to redirect to Google login" },

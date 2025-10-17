@@ -44,20 +44,52 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const state = JSON.parse(decodeURIComponent(stateParam));
+    const jar = await cookies();
+    const savedState = jar.get("oauth_state")?.value;
+    const codeVerifier = jar.get("pkce_verifier")?.value;
 
-    // 1. 구글에서 액세스 토큰 받기
+    if (!savedState || savedState !== stateParam) {
+      return NextResponse.json({ error: "Invalid state" }, { status: 400 });
+    }
+    if (!codeVerifier) {
+      return NextResponse.json(
+        { error: "Missing code_verifier" },
+        { status: 400 },
+      );
+    }
+
+    // state 파싱 및 검증
+    let state: { redirect_uri: string; register_uri: string; nonce: string };
+    try {
+      state = JSON.parse(decodeURIComponent(stateParam));
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid state format" },
+        { status: 400 },
+      );
+    }
+
+    // 1) 토큰 교환 (Authorization Code + PKCE + client_secret)
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
+        grant_type: "authorization_code",
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
         redirect_uri: process.env.GOOGLE_CALLBACK_URL!,
-        grant_type: "authorization_code",
+        code_verifier: codeVerifier,
       }),
+      // (선택) timeout/abort controller 권장
     });
+
+    if (!tokenResponse.ok) {
+      return NextResponse.json(
+        { error: "Failed to get tokens" },
+        { status: 500 },
+      );
+    }
 
     const tokens = await tokenResponse.json();
 
@@ -159,7 +191,7 @@ export async function GET(request: NextRequest) {
     // Access Token (JWT)
     cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, jwt, {
       path: "/",
-      maxAge: 15 * 60, // ✅ 15분
+      maxAge: 10 * 60, // ✅ 10분
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
