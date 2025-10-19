@@ -6,6 +6,7 @@ export const GET_REFRESH_TOKEN_BY_ID = gql`
       id
       refresh_token
       user_id
+      provider
       user {
         id
         email
