@@ -10,8 +10,10 @@ import {
 } from "@/graphql/mutations";
 import { GET_REFRESH_TOKEN_BY_ID } from "@/graphql/queries";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { withCsrfProtection } from "@/lib/csrf";
 
-export async function POST(request: NextRequest) {
+// POST /api/auth/refresh: 저장된 refresh 토큰으로 새 access 토큰을 발급
+export const POST = withCsrfProtection(async (request: NextRequest) => {
   try {
     const cookieStore = await cookies();
     const currentToken = cookieStore.get(
@@ -177,4 +179,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

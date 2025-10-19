@@ -9,8 +9,10 @@ import {
 } from "@/generated/graphql";
 import { REGISTER_USER, UPDATE_USER_BY_PROVIDER } from "@/graphql/mutations";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { rotateCsrfCookie, withCsrfProtection } from "@/lib/csrf";
 
-export async function POST(request: NextRequest) {
+// POST /api/auth/register: 신규 사용자 생성 또는 기존 계정 갱신 후 세션/CSRF 쿠키 설정
+export const POST = withCsrfProtection(async (request: NextRequest) => {
   if (
     !process.env.HASURA_GRAPHQL_ENDPOINT ||
     !process.env.HASURA_ADMIN_SECRET ||
@@ -84,6 +86,8 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
     });
 
+    await rotateCsrfCookie();
+
     return NextResponse.json(updated, { status: 200 });
   }
 
@@ -119,5 +123,7 @@ export async function POST(request: NextRequest) {
     sameSite: "lax",
   });
 
+  await rotateCsrfCookie();
+
   return NextResponse.json(created, { status: 200 });
-}
+});

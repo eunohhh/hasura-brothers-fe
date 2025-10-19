@@ -5,8 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
 import { DELETE_ALL_USER_TOKENS } from "@/graphql/mutations";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { rotateCsrfCookie, withCsrfProtection } from "@/lib/csrf";
 
-export async function POST(request: NextRequest) {
+// POST /api/auth/logout-all: 모든 기기의 refresh 토큰을 삭제하고 세션을 초기화
+export const POST = withCsrfProtection(async (_request: NextRequest) => {
   try {
     const cookieStore = await cookies();
     const currentToken = cookieStore.get(
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
     cookieStore.delete(SERVER_CONSTS.COOKIE_AUTH_TOKEN);
     cookieStore.delete(SERVER_CONSTS.COOKIE_TOKEN_ID);
 
+    await rotateCsrfCookie();
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Logout all error:", error);
@@ -50,4 +54,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

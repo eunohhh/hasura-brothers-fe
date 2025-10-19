@@ -4,8 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { SERVER_CONSTS } from "@/constants/server.consts";
 import { DELETE_TOKEN_BY_ID } from "@/graphql/mutations";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { rotateCsrfCookie, withCsrfProtection } from "@/lib/csrf";
 
-export async function POST(request: NextRequest) {
+// POST /api/auth/logout: 현재 세션과 refresh 토큰을 정리한 뒤 CSRF 토큰을 갱신
+export const POST = withCsrfProtection(async (_request: NextRequest) => {
   try {
     const cookieStore = await cookies();
     const tokenId = cookieStore.get(SERVER_CONSTS.COOKIE_TOKEN_ID)?.value;
@@ -23,9 +25,11 @@ export async function POST(request: NextRequest) {
     cookieStore.delete(SERVER_CONSTS.COOKIE_AUTH_TOKEN);
     cookieStore.delete(SERVER_CONSTS.COOKIE_TOKEN_ID);
 
+    await rotateCsrfCookie();
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Logout error:", error);
     return NextResponse.json({ error: "Failed to logout" }, { status: 500 });
   }
-}
+});

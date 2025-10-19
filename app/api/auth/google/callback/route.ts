@@ -10,9 +10,11 @@ import {
 import { SAVE_REFRESH_TOKEN } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
 import { getAdminClient } from "@/lib/apollo-admin-client";
+import { rotateCsrfCookie } from "@/lib/csrf";
 import { getURL } from "@/lib/server-utils";
 import { GoogleUser } from "@/types/types";
 
+// GET /api/auth/google/callback: OAuth 인증 후 세션/CSRF 쿠키 설정 및 리다이렉트
 export async function GET(request: NextRequest) {
   if (
     !process.env.GOOGLE_CLIENT_ID ||
@@ -208,6 +210,8 @@ export async function GET(request: NextRequest) {
         sameSite: "lax",
       });
     }
+
+    await rotateCsrfCookie();
 
     // 7. 리다이렉트
     // 7. 리다이렉트 (토큰을 쿼리 파라미터로 전달)
