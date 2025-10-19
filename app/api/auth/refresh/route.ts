@@ -82,20 +82,25 @@ export const POST = withCsrfProtection(async (request: NextRequest) => {
       );
     }
 
-    // 3. Google에서 새 Access Token 받기
-    const refreshResponse = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        refresh_token: tokenData.user_tokens_by_pk.refresh_token,
-        grant_type: "refresh_token",
-      }),
-    });
+    const storedToken = tokenData.user_tokens_by_pk;
+    const provider = storedToken.provider?.toUpperCase();
 
-    if (!refreshResponse.ok) {
-      // Refresh token이 만료되거나 revoke됨 - DB에서도 삭제
+    if (!provider) {
+      console.error("Refresh token is missing provider info");
+      return NextResponse.json(
+        { error: "Unsupported OAuth provider", requiresReauth: true },
+        { status: 401 },
+      );
+    }
+
+    const latestUserFromDb = storedToken.user;
+    let latestUserInfo = {
+      email: currentEmail ?? latestUserFromDb?.email ?? "",
+      name: latestUserFromDb?.name,
+      picture: null as string | null,
+    };
+
+    const handleExpiredRefreshToken = async (message: string) => {
       const { error: deleteError } = await client.mutate({
         mutation: DELETE_TOKEN_BY_ID,
         variables: { tokenId },
@@ -106,30 +111,112 @@ export const POST = withCsrfProtection(async (request: NextRequest) => {
       }
 
       return NextResponse.json(
-        { error: "Refresh token expired", requiresReauth: true },
+        { error: message, requiresReauth: true },
         { status: 401 },
       );
-    }
-
-    const newTokens = await refreshResponse.json();
-
-    // 4. id_token에서 최신 유저 정보 가져오기
-    let latestUserInfo = {
-      email: currentEmail,
-      name: tokenData.user_tokens_by_pk.user.name,
-      picture: null,
     };
 
-    if (newTokens.id_token) {
-      const idTokenPayload = JSON.parse(
-        Buffer.from(newTokens.id_token.split(".")[1], "base64").toString(),
+    let newTokens: any;
+
+    if (provider === "GOOGLE") {
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        console.error("Missing Google OAuth credentials for refresh");
+        return NextResponse.json(
+          { error: "OAuth configuration incomplete" },
+          { status: 500 },
+        );
+      }
+
+      const refreshResponse = await fetch(
+        "https://oauth2.googleapis.com/token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: process.env.GOOGLE_CLIENT_ID!,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+            refresh_token: storedToken.refresh_token,
+            grant_type: "refresh_token",
+          }),
+        },
       );
 
-      latestUserInfo = {
-        email: idTokenPayload.email,
-        name: idTokenPayload.name,
-        picture: idTokenPayload.picture,
-      };
+      if (!refreshResponse.ok) {
+        return handleExpiredRefreshToken("Refresh token expired");
+      }
+
+      newTokens = await refreshResponse.json();
+
+      if (newTokens.id_token) {
+        const idTokenPayload = JSON.parse(
+          Buffer.from(newTokens.id_token.split(".")[1], "base64").toString(),
+        );
+
+        latestUserInfo = {
+          email: idTokenPayload.email,
+          name: idTokenPayload.name,
+          picture: idTokenPayload.picture,
+        };
+      }
+    } else if (provider === "KAKAO") {
+      if (!process.env.KAKAO_CLIENT_ID || !process.env.KAKAO_CLIENT_SECRET) {
+        console.error("Missing Kakao OAuth credentials for refresh");
+        return NextResponse.json(
+          { error: "OAuth configuration incomplete" },
+          { status: 500 },
+        );
+      }
+
+      const params = new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: process.env.KAKAO_CLIENT_ID!,
+        client_secret: process.env.KAKAO_CLIENT_SECRET!,
+        refresh_token: storedToken.refresh_token,
+      });
+
+      const refreshResponse = await fetch(
+        "https://kauth.kakao.com/oauth/token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params,
+        },
+      );
+
+      if (!refreshResponse.ok) {
+        return handleExpiredRefreshToken("Refresh token expired");
+      }
+
+      newTokens = await refreshResponse.json();
+
+      if (newTokens.access_token) {
+        const userInfoResponse = await fetch(
+          "https://kapi.kakao.com/v2/user/me",
+          {
+            headers: { Authorization: `Bearer ${newTokens.access_token}` },
+          },
+        );
+
+        if (userInfoResponse.ok) {
+          const kakaoUser = await userInfoResponse.json();
+          const account = kakaoUser?.kakao_account ?? {};
+          const profile = account?.profile ?? {};
+          latestUserInfo = {
+            email: account.email ?? latestUserInfo.email,
+            name: profile.nickname ?? latestUserInfo.name,
+            picture:
+              profile.profile_image_url ||
+              kakaoUser?.properties?.profile_image ||
+              latestUserInfo.picture,
+          };
+        }
+      }
+    } else {
+      console.error("Unsupported refresh provider:", provider);
+      return NextResponse.json(
+        { error: "Unsupported OAuth provider", requiresReauth: true },
+        { status: 401 },
+      );
     }
 
     // 5. 새로운 JWT 생성
