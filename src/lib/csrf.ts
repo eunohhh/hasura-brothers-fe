@@ -38,9 +38,9 @@ export async function rotateCsrfCookie() {
   return token;
 }
 
-type Handler = (
+type Handler<TArgs extends unknown[] = []> = (
   request: NextRequest,
-  ...args: never[]
+  ...args: TArgs
 ) => Promise<NextResponse> | NextResponse;
 
 interface CsrfOptions {
@@ -54,12 +54,15 @@ function shouldIgnore(method: string, ignore?: Set<string>) {
 }
 
 // 요청 헤더와 쿠키의 토큰을 비교해 일치할 때만 실제 핸들러를 실행
-export function withCsrfProtection(handler: Handler, options?: CsrfOptions) {
+export function withCsrfProtection<TArgs extends unknown[]>(
+  handler: Handler<TArgs>,
+  options?: CsrfOptions,
+) {
   const ignored = options?.ignoreMethods
     ? new Set(options.ignoreMethods.map((method) => method.toUpperCase()))
     : undefined;
 
-  return async (request: NextRequest, ...args: never[]) => {
+  return async (request: NextRequest, ...args: TArgs) => {
     if (shouldIgnore(request.method, ignored)) {
       return handler(request, ...args);
     }
