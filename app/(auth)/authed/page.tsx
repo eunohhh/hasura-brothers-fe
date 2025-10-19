@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { withCsrfHeaders } from "@/lib/csrf-client";
 import { GoogleUser } from "@/types/types";
 
 function AuthedPage() {
@@ -11,9 +12,10 @@ function AuthedPage() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-    });
+    const response = await fetch(
+      "/api/auth/logout",
+      withCsrfHeaders({ method: "POST" }),
+    );
     if (response.ok) {
       router.push("/");
     }

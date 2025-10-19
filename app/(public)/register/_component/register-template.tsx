@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { withCsrfHeaders } from "@/lib/csrf-client";
 
 export default function RegisterTemplate() {
   const searchParams = useSearchParams();
@@ -19,11 +20,14 @@ export default function RegisterTemplate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    const response = await fetch(
+      "/api/auth/register",
+      withCsrfHeaders({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      }),
+    );
 
     if (response.ok) {
       // 회원가입 성공 - 홈으로 이동
