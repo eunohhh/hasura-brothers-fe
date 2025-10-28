@@ -3,19 +3,25 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { withCsrfHeaders } from "@/lib/csrf-client";
-import { GoogleUser } from "@/types/types";
+import { User } from "@/generated/graphql";
+import { getCsrfToken } from "@/lib/auth/csrf-client-utils";
 
 function AuthedPage() {
-  const [user, setUser] = useState<GoogleUser | null>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    email: string;
+    name: string;
+    picture: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogout = async () => {
-    const response = await fetch(
-      "/api/auth/logout",
-      withCsrfHeaders({ method: "POST" }),
-    );
+    const response = await fetch("/api/auth/signout", {
+      headers: {
+        "x-csrf-token": getCsrfToken() || "",
+      },
+    });
     if (response.ok) {
       router.push("/");
     }
@@ -23,25 +29,36 @@ function AuthedPage() {
 
   useEffect(() => {
     const getUser = async () => {
+      if (!user?.email) {
+        return;
+      }
       try {
-        const response = await fetch("/api/auth/user");
+        const response = await fetch("/api/auth/user", {
+          method: "POST",
+          body: JSON.stringify({
+            email: (user?.email ?? "") || "",
+          }),
+          headers: {
+            "x-csrf-token": getCsrfToken() || "",
+          },
+        });
         if (!response.ok) {
           setError("Failed to fetch user");
           return;
         }
-        const data = (await response.json()) as { user: GoogleUser };
+        const data = (await response.json()) as User;
         setUser({
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.name,
-          picture: data.user.picture,
+          id: data.id,
+          email: data.email ?? "",
+          name: data.name ?? "",
+          picture: data.profile_image ?? "",
         });
       } catch (error) {
         setError(error as string);
       }
     };
     getUser();
-  }, []);
+  }, [user?.email]);
 
   if (error) {
     return <div>{error}</div>;

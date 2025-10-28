@@ -3,9 +3,9 @@
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { withCsrfHeaders } from "@/lib/csrf-client";
+import { getCsrfToken } from "@/lib/auth/csrf-client-utils";
 
-export default function RegisterTemplate() {
+function SignUpTemplate() {
   const searchParams = useSearchParams();
 
   // URL에서 파라미터 자동으로 채우기
@@ -20,17 +20,17 @@ export default function RegisterTemplate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch(
-      "/api/auth/register",
-      withCsrfHeaders({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      }),
-    );
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-csrf-token": getCsrfToken() || "",
+      },
+      body: JSON.stringify(formData),
+    });
 
     if (response.ok) {
-      // 회원가입 성공 - 홈으로 이동
+      // 회원가입 성공 - 인증된 페이지로 이동
       window.location.href = "/authed";
     }
   };
@@ -80,3 +80,5 @@ export default function RegisterTemplate() {
     </form>
   );
 }
+
+export default SignUpTemplate;

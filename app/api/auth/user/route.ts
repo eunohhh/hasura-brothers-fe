@@ -1,35 +1,36 @@
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-import { SERVER_CONSTS } from "@/constants/server.consts";
+import { type NextRequest, NextResponse } from "next/server";
+import { GetUserByEmailQuery } from "@/generated/graphql";
+import { GET_USER_BY_EMAIL } from "@/graphql/queries";
+import { getAdminClient } from "@/lib/apollo/server-admin";
+import { OAUTH_ERROR_MESSAGES } from "@/lib/constants/consts-common";
 
-export async function GET(_req: NextRequest) {
-  if (!process.env.HASURA_JWT_SECRET) {
-    return NextResponse.json({ error: "JWT secret not set" }, { status: 500 });
+export async function POST(request: NextRequest) {
+  const body = await request.json();
+  const { email } = body;
+
+  if (!email) {
+    return NextResponse.json(
+      { error: OAUTH_ERROR_MESSAGES.EMAIL_REQUIRED },
+      { status: 400 },
+    );
   }
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SERVER_CONSTS.COOKIE_AUTH_TOKEN)?.value;
-    if (!token) return NextResponse.json({ user: null }, { status: 200 });
-
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(process.env.HASURA_JWT_SECRET),
-    );
-
+    const client = getAdminClient();
+    const { data: user, error } = await client.query<GetUserByEmailQuery>({
+      query: GET_USER_BY_EMAIL,
+      variables: { email },
+    });
+    if (error) {
+      console.error(error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json(user?.user?.[0] ?? null, { status: 200 });
+  } catch (error) {
+    console.error("유저 정보 조회 에러 ====>", error);
     return NextResponse.json(
-      {
-        user: {
-          id: payload.sub,
-          email: payload.email,
-          name: payload.name,
-          picture: payload.picture,
-        },
-      },
-      { status: 200 },
+      { error: OAUTH_ERROR_MESSAGES.FAILED_TO_GET_USER_FROM_HASURA },
+      { status: 500 },
     );
-  } catch {
-    return NextResponse.json({ user: null }, { status: 200 });
   }
 }

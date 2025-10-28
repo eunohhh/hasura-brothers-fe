@@ -57,19 +57,35 @@ export const DELETE_ALL_USER_TOKENS = gql`
 // 트랜잭션 처리를 위한 복합 뮤테이션
 export const REGISTER_USER_WITH_TOKEN = gql`
   mutation RegisterUserWithToken(
-    $userObject: user_insert_input!
-    $tokenObject: user_tokens_insert_input!
+    $email: String
+    $provider: String
+    $provider_id: String
+    $refresh_token: String!
+    $expired_at: timestamptz
   ) {
-    insert_user_one(object: $userObject) {
+    insert_user_one(
+      object: {
+        email: $email
+        provider: $provider
+        provider_id: $provider_id
+        user_tokens: {
+          data: {
+            provider: $provider
+            refresh_token: $refresh_token
+            expired_at: $expired_at
+          }
+        }
+      }
+    ) {
       id
       email
       name
       profile_image
       is_admin
       created_at
-    }
-    insert_user_tokens_one(object: $tokenObject) {
-      id
+      user_tokens {
+        id
+      }
     }
   }
 `;
@@ -79,7 +95,9 @@ export const UPDATE_USER_PROVIDER_WITH_TOKEN = gql`
     $email: String!
     $provider: String!
     $provider_id: String!
-    $tokenObject: user_tokens_insert_input!
+    $user_id: uuid!
+    $refresh_token: String!
+    $expired_at: timestamptz
   ) {
     update_user(
       where: { email: { _eq: $email } }
@@ -99,7 +117,15 @@ export const UPDATE_USER_PROVIDER_WITH_TOKEN = gql`
         created_at
       }
     }
-    insert_user_tokens_one(object: $tokenObject) {
+    insert_user_tokens_one(
+      object: {
+        user_id: $user_id
+        provider: $provider
+        refresh_token: $refresh_token
+        expired_at: $expired_at
+      }
+    ) {
+      user_id
       id
     }
   }

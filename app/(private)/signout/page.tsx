@@ -2,16 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { withCsrfHeaders } from "@/lib/csrf-client";
+import { getCsrfToken } from "@/lib/auth/csrf-client-utils";
 
 export default function LogoutPage() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    const response = await fetch(
-      "/api/auth/logout",
-      withCsrfHeaders({ method: "POST" }),
-    );
+    const response = await fetch("/api/auth/signout", {
+      headers: {
+        "x-csrf-token": getCsrfToken() || "",
+      },
+    });
 
     if (response.ok) {
       router.push("/");

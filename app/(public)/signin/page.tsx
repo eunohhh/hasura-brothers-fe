@@ -1,30 +1,27 @@
-// app/login/page.tsx
+// app/signin/page.tsx
 "use client";
 
 import { FaGoogle } from "react-icons/fa";
 import { RiKakaoTalkFill } from "react-icons/ri";
 import { Button } from "@/components/ui/button";
 
-export default function LoginPage() {
-  // const searchParams = useSearchParams();
-  // const callbackUrl = searchParams.get("callbackUrl") || "/authed";
+function SignInPage() {
   const callbackUrl = "/authed";
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     const params = new URLSearchParams({
       redirect_uri: callbackUrl, // 원래 가려던 페이지로
-      register_uri: "/register",
+      register_uri: "/signup",
     });
 
     window.location.href = `/api/auth/google?${params.toString()}`;
   };
 
-  const handleKakaoLogin = () => {
+  const handleKakaoLogin = async () => {
     const params = new URLSearchParams({
-      redirect_uri: callbackUrl,
-      register_uri: "/register",
+      redirect_uri: callbackUrl, // 원래 가려던 페이지로
+      register_uri: "/signup",
     });
-
     window.location.href = `/api/auth/kakao?${params.toString()}`;
   };
 
@@ -49,3 +46,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default SignInPage;

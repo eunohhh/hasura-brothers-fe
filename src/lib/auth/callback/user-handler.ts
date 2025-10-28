@@ -4,11 +4,14 @@ import {
   GetUserByEmailQueryVariables,
   RegisterUserWithTokenMutation,
   RegisterUserWithTokenMutationVariables,
+  SaveRefreshTokenMutation,
+  SaveRefreshTokenMutationVariables,
   UpdateUserProviderWithTokenMutation,
   UpdateUserProviderWithTokenMutationVariables,
 } from "@/generated/graphql";
 import {
   REGISTER_USER_WITH_TOKEN,
+  SAVE_REFRESH_TOKEN,
   UPDATE_USER_PROVIDER_WITH_TOKEN,
 } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
@@ -79,12 +82,9 @@ export async function processUser(
             email: oauthUser.email,
             provider: provider,
             provider_id: oauthUser.sub,
-            tokenObject: {
-              user_id: foundUserByEmail.id,
-              provider: tokenObject.provider,
-              refresh_token: tokenObject.refresh_token,
-              expired_at: tokenObject.expired_at,
-            },
+            user_id: foundUserByEmail.id,
+            refresh_token: tokenObject.refresh_token,
+            expired_at: tokenObject.expired_at,
           },
         });
 
@@ -107,13 +107,12 @@ export async function processUser(
       if (tokenObject) {
         // 기존 사용자에 Refresh Token만 추가
         const { data: tokenData, error: tokenError } = await client.mutate<
-          RegisterUserWithTokenMutation,
-          RegisterUserWithTokenMutationVariables
+          SaveRefreshTokenMutation,
+          SaveRefreshTokenMutationVariables
         >({
-          mutation: REGISTER_USER_WITH_TOKEN,
+          mutation: SAVE_REFRESH_TOKEN,
           variables: {
-            userObject: { id: userId }, // 빈 객체로 기존 사용자 유지
-            tokenObject: {
+            object: {
               user_id: userId,
               provider: tokenObject.provider,
               refresh_token: tokenObject.refresh_token,
@@ -183,17 +182,11 @@ async function createUserWithRetry(
       >({
         mutation: REGISTER_USER_WITH_TOKEN,
         variables: {
-          userObject: {
-            email: oauthUser.email,
-            provider: provider,
-            provider_id: oauthUser.sub,
-          },
-          tokenObject: {
-            user_id: "", // Hasura가 자동으로 설정
-            provider: tokenObject.provider,
-            refresh_token: tokenObject.refresh_token,
-            expired_at: tokenObject.expired_at,
-          },
+          email: oauthUser.email,
+          provider: provider,
+          provider_id: oauthUser.sub,
+          refresh_token: tokenObject.refresh_token,
+          expired_at: tokenObject.expired_at,
         },
       });
 
@@ -229,13 +222,12 @@ async function createUserWithRetry(
                 // 기존 사용자에 Refresh Token만 추가
                 const { data: tokenData, error: tokenError } =
                   await client.mutate<
-                    RegisterUserWithTokenMutation,
-                    RegisterUserWithTokenMutationVariables
+                    SaveRefreshTokenMutation,
+                    SaveRefreshTokenMutationVariables
                   >({
-                    mutation: REGISTER_USER_WITH_TOKEN,
+                    mutation: SAVE_REFRESH_TOKEN,
                     variables: {
-                      userObject: { id: userId },
-                      tokenObject: {
+                      object: {
                         user_id: userId,
                         provider: tokenObject.provider,
                         refresh_token: tokenObject.refresh_token,
@@ -264,14 +256,16 @@ async function createUserWithRetry(
         throw new Error("사용자 생성에 실패했습니다.");
       }
 
-      if (!newUser?.insert_user_one || !newUser?.insert_user_tokens_one?.id) {
+      if (!newUser?.insert_user_one) {
         throw new Error("사용자 생성에 실패했습니다.");
       }
+
+      const tokenId = newUser.insert_user_one.user_tokens?.[0]?.id || null;
 
       userCreated = true;
       return {
         userId: newUser.insert_user_one.id,
-        tokenId: newUser.insert_user_tokens_one.id,
+        tokenId,
         shouldRedirectToRegister: true,
       };
     } catch (error) {
