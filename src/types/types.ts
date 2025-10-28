@@ -1,3 +1,12 @@
+export type UserTokenResponse = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    picture: string;
+  } | null;
+};
+
 export type GoogleUser = {
   id: string;
   email: string;

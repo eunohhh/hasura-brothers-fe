@@ -156,6 +156,7 @@ async function createUserWithRetry(
           provider_id: oauthUser.sub,
           refresh_token: tokenObject.refresh_token,
           expired_at: tokenObject.expired_at,
+          profile_image: oauthUser.picture,
         },
       });
 

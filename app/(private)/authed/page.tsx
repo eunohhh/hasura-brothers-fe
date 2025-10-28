@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { User } from "@/generated/graphql";
 import { getCsrfToken } from "@/lib/auth/csrf-client-utils";
+import { UserTokenResponse } from "@/types/types";
 
 function AuthedPage() {
   const [user, setUser] = useState<{
@@ -18,6 +18,7 @@ function AuthedPage() {
 
   const handleLogout = async () => {
     const response = await fetch("/api/auth/signout", {
+      method: "DELETE",
       headers: {
         "x-csrf-token": getCsrfToken() || "",
       },
@@ -29,15 +30,8 @@ function AuthedPage() {
 
   useEffect(() => {
     const getUser = async () => {
-      if (!user?.email) {
-        return;
-      }
       try {
-        const response = await fetch("/api/auth/user", {
-          method: "POST",
-          body: JSON.stringify({
-            email: (user?.email ?? "") || "",
-          }),
+        const response = await fetch("/api/auth/user-token", {
           headers: {
             "x-csrf-token": getCsrfToken() || "",
           },
@@ -46,19 +40,20 @@ function AuthedPage() {
           setError("Failed to fetch user");
           return;
         }
-        const data = (await response.json()) as User;
+        const data = (await response.json()) as UserTokenResponse;
+
         setUser({
-          id: data.id,
-          email: data.email ?? "",
-          name: data.name ?? "",
-          picture: data.profile_image ?? "",
+          id: data.user?.id ?? "",
+          email: data.user?.email ?? "",
+          name: data.user?.name ?? "",
+          picture: data.user?.picture ?? "",
         });
       } catch (error) {
         setError(error as string);
       }
     };
     getUser();
-  }, [user?.email]);
+  }, []);
 
   if (error) {
     return <div>{error}</div>;

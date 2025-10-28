@@ -62,12 +62,14 @@ export const REGISTER_USER_WITH_TOKEN = gql`
     $provider_id: String
     $refresh_token: String!
     $expired_at: timestamptz
+    $profile_image: String
   ) {
     insert_user_one(
       object: {
         email: $email
         provider: $provider
         provider_id: $provider_id
+        profile_image: $profile_image
         user_tokens: {
           data: {
             provider: $provider

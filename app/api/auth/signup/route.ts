@@ -19,7 +19,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, name } = body;
+    const { email, name, profileImage } = body;
 
     // 3️⃣ 입력 유효성 검증
     if (!email) {
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         name: name,
         provider: existingUser.provider!, // 기존 provider 유지
         provider_id: existingUser.provider_id!, // 기존 provider_id 유지
+        profile_image: profileImage,
       },
     });
 
