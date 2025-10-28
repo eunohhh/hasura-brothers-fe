@@ -63,3 +63,15 @@ export async function exchangeToken(params: ExchangeTokenParams): Promise<{
     refreshToken: data.refresh_token,
   };
 }
+
+export const isValidUrl = (
+  urlString: string,
+  allowedDomains: string[],
+): boolean => {
+  try {
+    const url = new URL(urlString);
+    return allowedDomains.includes(url.hostname);
+  } catch {
+    return false;
+  }
+};

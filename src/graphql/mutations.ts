@@ -54,6 +54,57 @@ export const DELETE_ALL_USER_TOKENS = gql`
   }
 `;
 
+// 트랜잭션 처리를 위한 복합 뮤테이션
+export const REGISTER_USER_WITH_TOKEN = gql`
+  mutation RegisterUserWithToken(
+    $userObject: user_insert_input!
+    $tokenObject: user_tokens_insert_input!
+  ) {
+    insert_user_one(object: $userObject) {
+      id
+      email
+      name
+      profile_image
+      is_admin
+      created_at
+    }
+    insert_user_tokens_one(object: $tokenObject) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_USER_PROVIDER_WITH_TOKEN = gql`
+  mutation UpdateUserProviderWithToken(
+    $email: String!
+    $provider: String!
+    $provider_id: String!
+    $tokenObject: user_tokens_insert_input!
+  ) {
+    update_user(
+      where: { email: { _eq: $email } }
+      _set: { 
+        provider: $provider
+        provider_id: $provider_id
+        updated_at: "now()"
+      }
+    ) {
+      affected_rows
+      returning {
+        id
+        email
+        name
+        profile_image
+        is_admin
+        created_at
+      }
+    }
+    insert_user_tokens_one(object: $tokenObject) {
+      id
+    }
+  }
+`;
+
 // ============================================================================
 // User Mutations
 // ============================================================================

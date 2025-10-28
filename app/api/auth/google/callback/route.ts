@@ -4,29 +4,23 @@ import { env } from "@/env";
 import {
   GetUserByEmailQuery,
   GetUserByEmailQueryVariables,
-  RegisterUserMutation,
-  RegisterUserMutationVariables,
-  SaveRefreshTokenMutation,
-  SaveRefreshTokenMutationVariables,
-  UpdateUserByProviderMutation,
-  UpdateUserByProviderMutationVariables,
+  RegisterUserWithTokenMutation,
+  RegisterUserWithTokenMutationVariables,
+  UpdateUserProviderWithTokenMutation,
+  UpdateUserProviderWithTokenMutationVariables,
 } from "@/generated/graphql";
 import {
-  REGISTER_USER,
-  SAVE_REFRESH_TOKEN,
-  UPDATE_USER_BY_PROVIDER,
+  REGISTER_USER_WITH_TOKEN,
+  UPDATE_USER_PROVIDER_WITH_TOKEN,
 } from "@/graphql/mutations";
 import { GET_USER_BY_EMAIL } from "@/graphql/queries";
 import { getAdminClient } from "@/lib/apollo/server-admin";
 import { getPublicURL } from "@/lib/auth/common-utils";
 import { rotateCsrfCookie } from "@/lib/auth/csrf-server-utils";
 import { checkPKCECookies } from "@/lib/auth/pkce-utils";
-import { exchangeToken } from "@/lib/auth/server-utils";
+import { exchangeToken, isValidUrl } from "@/lib/auth/server-utils";
 import { signJWTToken } from "@/lib/auth/token-server-utils";
-import {
-  COMMON_CONSTS,
-  OAUTH_ERROR_MESSAGES,
-} from "@/lib/constants/consts-common";
+import { COMMON_CONSTS } from "@/lib/constants/consts-common";
 import type { GoogleUser } from "@/types/types";
 
 // GET /api/auth/google/callback: OAuth 인증 후 세션/CSRF 쿠키 설정 및 리다이렉트
@@ -37,15 +31,18 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get("code");
     const stateParam = searchParams.get("state");
 
-    if (!code || !stateParam) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.INVALID_REQUEST },
-        { status: 400 },
-      );
-    }
-
     // PKCE 쿠키 체크
     const publicUrl = getPublicURL();
+
+    if (!code || !stateParam) {
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "invalid_request");
+      errorUrl.searchParams.set(
+        "message",
+        "잘못된 요청입니다. 다시 시도해주세요.",
+      );
+      return NextResponse.redirect(errorUrl);
+    }
     const { savedState, codeVerifier, cookieStore } = await checkPKCECookies();
     if (!savedState || savedState !== stateParam || !codeVerifier) {
       // PKCE 쿠키는 10분이 적당한 것으로 보입니다.
@@ -71,10 +68,34 @@ export async function GET(request: NextRequest) {
     try {
       state = JSON.parse(decodeURIComponent(stateParam));
     } catch (error) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.INVALID_STATE_FORMAT },
-        { status: 400 },
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "invalid_state");
+      errorUrl.searchParams.set(
+        "message",
+        "잘못된 상태 정보입니다. 다시 시도해주세요.",
       );
+      return NextResponse.redirect(errorUrl);
+    }
+
+    // URL 검증 - Open Redirect 방지
+    const allowedDomains = [
+      new URL(publicUrl).hostname,
+      "localhost",
+      "127.0.0.1",
+      // 프로덕션 도메인 추가 가능
+    ];
+
+    if (
+      !isValidUrl(state.redirect_uri, allowedDomains) ||
+      !isValidUrl(state.register_uri, allowedDomains)
+    ) {
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "invalid_redirect_uri");
+      errorUrl.searchParams.set(
+        "message",
+        "잘못된 리다이렉트 URL입니다. 다시 시도해주세요.",
+      );
+      return NextResponse.redirect(errorUrl);
     }
 
     // 토큰 교환 (Authorization Code + PKCE + client_secret)
@@ -91,17 +112,23 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokens) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.FAILED_TO_GET_TOKENS },
-        { status: 500 },
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "token_exchange_failed");
+      errorUrl.searchParams.set(
+        "message",
+        "토큰 교환에 실패했습니다. 다시 시도해주세요.",
       );
+      return NextResponse.redirect(errorUrl);
     }
 
     if (!tokens.accessToken) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.FAILED_TO_GET_ACCESS_TOKEN },
-        { status: 500 },
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "no_access_token");
+      errorUrl.searchParams.set(
+        "message",
+        "액세스 토큰을 받지 못했습니다. 다시 시도해주세요.",
       );
+      return NextResponse.redirect(errorUrl);
     }
 
     // 유저 정보 가져오기
@@ -113,10 +140,13 @@ export async function GET(request: NextRequest) {
     );
 
     if (!userInfoResponse.ok) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.FAILED_TO_GET_USER_INFO },
-        { status: 500 },
+      const errorUrl = new URL("/signin", publicUrl);
+      errorUrl.searchParams.set("error", "user_info_failed");
+      errorUrl.searchParams.set(
+        "message",
+        "사용자 정보를 가져오는데 실패했습니다. 다시 시도해주세요.",
       );
+      return NextResponse.redirect(errorUrl);
     }
 
     const googleUser: GoogleUser = await userInfoResponse.json();
@@ -133,58 +163,237 @@ export async function GET(request: NextRequest) {
 
     const foundUserByEmail = hasuraUser?.user?.[0];
 
-    let userId: string;
+    let userId: string = "";
     let shouldRedirectToRegister = false;
-    // 사용자 확인 및 처리
-    if (foundUserByEmail) {
-      // Case 1: 이메일로 이미 등록된 사용자인데 카카오로 로그인 된 경우(provider가 구글이 아닌 경우)
-      if (foundUserByEmail.provider !== "GOOGLE") {
-        // Provider 업데이트
-        const { data: updatedUser, error: updateError } = await client.mutate<
-          UpdateUserByProviderMutation,
-          UpdateUserByProviderMutationVariables
-        >({
-          mutation: UPDATE_USER_BY_PROVIDER,
-          variables: {
-            email: googleUser.email,
-            provider: "GOOGLE",
-            provider_id: googleUser.sub,
-          },
-        });
-        if (updateError || !updatedUser?.update_user?.returning?.[0]) {
-          return NextResponse.json(
-            { error: OAUTH_ERROR_MESSAGES.FAILED_TO_UPDATE_USER },
-            { status: 500 },
-          );
+    let tokenId: string | null = null;
+
+    // Refresh Token이 있는 경우에만 토큰 객체 생성
+    const tokenObject = tokens.refreshToken
+      ? {
+          user_id: "", // 나중에 설정
+          expired_at: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
         }
-        userId = updatedUser.update_user.returning[0].id;
-        // 구글로 로그인 된 경우
+      : null;
+
+    // 사용자 확인 및 처리 (트랜잭션 방식)
+    if (foundUserByEmail) {
+      // Case 1: 이메일로 이미 등록된 사용자인데 다른 provider로 로그인 된 경우
+      if (foundUserByEmail.provider !== "GOOGLE") {
+        if (tokenObject) {
+          // Provider 업데이트 + Refresh Token 생성 (트랜잭션)
+          tokenObject.user_id = foundUserByEmail.id;
+          const { data: updatedUser, error: updateError } = await client.mutate<
+            UpdateUserProviderWithTokenMutation,
+            UpdateUserProviderWithTokenMutationVariables
+          >({
+            mutation: UPDATE_USER_PROVIDER_WITH_TOKEN,
+            variables: {
+              email: googleUser.email,
+              provider: "GOOGLE",
+              provider_id: googleUser.sub,
+              tokenObject,
+            },
+          });
+
+          if (
+            updateError ||
+            !updatedUser?.update_user?.returning?.[0] ||
+            !updatedUser?.insert_user_tokens_one?.id
+          ) {
+            const errorUrl = new URL("/signin", publicUrl);
+            errorUrl.searchParams.set("error", "user_update_failed");
+            errorUrl.searchParams.set(
+              "message",
+              "사용자 정보 업데이트에 실패했습니다. 다시 시도해주세요.",
+            );
+            return NextResponse.redirect(errorUrl);
+          }
+
+          userId = updatedUser.update_user.returning[0].id;
+          tokenId = updatedUser.insert_user_tokens_one.id;
+        } else {
+          // Refresh Token이 없는 경우 기존 방식으로 처리
+          const errorUrl = new URL("/signin", publicUrl);
+          errorUrl.searchParams.set("error", "no_refresh_token");
+          errorUrl.searchParams.set(
+            "message",
+            "리프레시 토큰이 필요합니다. 다시 시도해주세요.",
+          );
+          return NextResponse.redirect(errorUrl);
+        }
       } else {
+        // 이미 구글로 등록된 사용자
         userId = foundUserByEmail.id;
+        if (tokenObject) {
+          tokenObject.user_id = userId;
+          // 기존 사용자에 Refresh Token만 추가
+          const { data: tokenData, error: tokenError } = await client.mutate<
+            RegisterUserWithTokenMutation,
+            RegisterUserWithTokenMutationVariables
+          >({
+            mutation: REGISTER_USER_WITH_TOKEN,
+            variables: {
+              userObject: { id: userId }, // 빈 객체로 기존 사용자 유지
+              tokenObject,
+            },
+          });
+
+          if (!tokenError && tokenData?.insert_user_tokens_one?.id) {
+            tokenId = tokenData.insert_user_tokens_one.id;
+          }
+        }
       }
     } else {
       // Case 2: 이메일로 찾아지지 않은 경우, 유저 생성
-      const { data: newUser, error: createUserError } = await client.mutate<
-        RegisterUserMutation,
-        RegisterUserMutationVariables
-      >({
-        mutation: REGISTER_USER,
-        variables: {
-          email: googleUser.email,
-          provider: "GOOGLE",
-          provider_id: googleUser.sub,
-        },
-      });
+      if (tokenObject) {
+        // Race Condition 방지를 위한 재시도 로직
+        let retryCount = 0;
+        const maxRetries = 3;
+        let userCreated = false;
 
-      if (createUserError || !newUser?.insert_user_one) {
-        return NextResponse.json(
-          { error: OAUTH_ERROR_MESSAGES.FAILED_TO_CREATE_PI },
-          { status: 500 },
+        while (retryCount < maxRetries && !userCreated) {
+          try {
+            // 사용자 생성 + Refresh Token 생성 (트랜잭션)
+            const { data: newUser, error: createUserError } =
+              await client.mutate<
+                RegisterUserWithTokenMutation,
+                RegisterUserWithTokenMutationVariables
+              >({
+                mutation: REGISTER_USER_WITH_TOKEN,
+                variables: {
+                  userObject: {
+                    email: googleUser.email,
+                    provider: "GOOGLE",
+                    provider_id: googleUser.sub,
+                  },
+                  tokenObject: {
+                    user_id: "", // Hasura가 자동으로 설정
+                    expired_at: tokenObject.expired_at,
+                  },
+                },
+              });
+
+            if (createUserError) {
+              // 중복 키 오류인 경우 (Race Condition)
+              if (
+                createUserError.message?.includes("duplicate key") ||
+                createUserError.message?.includes("unique constraint")
+              ) {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                  // 잠시 대기 후 다시 사용자 조회
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, 100 * retryCount),
+                  );
+
+                  // 다시 사용자 조회 시도
+                  const { data: retryUser } = await client.query<
+                    GetUserByEmailQuery,
+                    GetUserByEmailQueryVariables
+                  >({
+                    query: GET_USER_BY_EMAIL,
+                    variables: { email: googleUser.email },
+                  });
+
+                  const retryFoundUser = retryUser?.user?.[0];
+                  if (retryFoundUser) {
+                    // 다른 요청에서 이미 사용자를 생성한 경우
+                    userId = retryFoundUser.id;
+                    if (tokenObject) {
+                      tokenObject.user_id = userId;
+                      // 기존 사용자에 Refresh Token만 추가
+                      const { data: tokenData, error: tokenError } =
+                        await client.mutate<
+                          RegisterUserWithTokenMutation,
+                          RegisterUserWithTokenMutationVariables
+                        >({
+                          mutation: REGISTER_USER_WITH_TOKEN,
+                          variables: {
+                            userObject: { id: userId },
+                            tokenObject,
+                          },
+                        });
+
+                      if (
+                        !tokenError &&
+                        tokenData?.insert_user_tokens_one?.id
+                      ) {
+                        tokenId = tokenData.insert_user_tokens_one.id;
+                      }
+                    }
+                    userCreated = true;
+                    break;
+                  }
+                  continue;
+                }
+              }
+
+              // 다른 종류의 오류인 경우
+              const errorUrl = new URL("/signin", publicUrl);
+              errorUrl.searchParams.set("error", "user_creation_failed");
+              errorUrl.searchParams.set(
+                "message",
+                "사용자 생성에 실패했습니다. 다시 시도해주세요.",
+              );
+              return NextResponse.redirect(errorUrl);
+            }
+
+            if (
+              !newUser?.insert_user_one ||
+              !newUser?.insert_user_tokens_one?.id
+            ) {
+              const errorUrl = new URL("/signin", publicUrl);
+              errorUrl.searchParams.set("error", "user_creation_failed");
+              errorUrl.searchParams.set(
+                "message",
+                "사용자 생성에 실패했습니다. 다시 시도해주세요.",
+              );
+              return NextResponse.redirect(errorUrl);
+            }
+
+            userId = newUser.insert_user_one.id;
+            tokenId = newUser.insert_user_tokens_one.id;
+            shouldRedirectToRegister = true; // 추가 정보 입력 페이지로 이동 필요
+            userCreated = true;
+          } catch (error) {
+            retryCount++;
+            if (retryCount >= maxRetries) {
+              const errorUrl = new URL("/signin", publicUrl);
+              errorUrl.searchParams.set("error", "user_creation_failed");
+              errorUrl.searchParams.set(
+                "message",
+                "사용자 생성에 실패했습니다. 다시 시도해주세요.",
+              );
+              return NextResponse.redirect(errorUrl);
+            }
+            // 잠시 대기 후 재시도
+            await new Promise((resolve) =>
+              setTimeout(resolve, 100 * retryCount),
+            );
+          }
+        }
+
+        if (!userCreated) {
+          const errorUrl = new URL("/signin", publicUrl);
+          errorUrl.searchParams.set("error", "user_creation_failed");
+          errorUrl.searchParams.set(
+            "message",
+            "사용자 생성에 실패했습니다. 다시 시도해주세요.",
+          );
+          return NextResponse.redirect(errorUrl);
+        }
+      } else {
+        // Refresh Token이 없는 경우 기존 방식으로 처리
+        const errorUrl = new URL("/signin", publicUrl);
+        errorUrl.searchParams.set("error", "no_refresh_token");
+        errorUrl.searchParams.set(
+          "message",
+          "리프레시 토큰이 필요합니다. 다시 시도해주세요.",
         );
+        return NextResponse.redirect(errorUrl);
       }
-
-      userId = newUser.insert_user_one.id;
-      shouldRedirectToRegister = true; // 추가 정보 입력 페이지로 이동 필요
     }
 
     // 등록된 유저면 JWT 생성
@@ -194,52 +403,10 @@ export async function GET(request: NextRequest) {
       minutes: 10,
     });
 
-    // 새 Refresh Token 생성 및 저장 (쿠키 설정 전에 먼저 처리)
-    let tokenId: string | null = null;
-
-    // Google은 최초 인증 시에만 refresh_token을 반환
-    if (tokens.refreshToken) {
-      try {
-        // ✅ 만료 시간 설정 (30일)
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 30);
-
-        const { data: newRefreshToken, error: refreshTokenError } =
-          await client.mutate<
-            SaveRefreshTokenMutation,
-            SaveRefreshTokenMutationVariables
-          >({
-            mutation: SAVE_REFRESH_TOKEN,
-            variables: {
-              object: {
-                user_id: userId,
-                expired_at: expiresAt.toISOString(), // ✅ ISO 문자열
-              },
-            },
-          });
-
-        if (refreshTokenError || !newRefreshToken?.insert_user_tokens_one?.id) {
-          return NextResponse.json(
-            { error: OAUTH_ERROR_MESSAGES.FAILED_TO_CREATE_REFRESH_TOKEN },
-            { status: 500 },
-          );
-        }
-
-        tokenId = newRefreshToken.insert_user_tokens_one.id;
-      } catch (error) {
-        return NextResponse.json(
-          { error: OAUTH_ERROR_MESSAGES.FAILED_TO_CREATE_REFRESH_TOKEN },
-          { status: 500 },
-        );
-      }
-    } else {
-      // ⚠️ Google이 refresh_token을 반환하지 않은 경우
-      // 이미 인증된 계정이거나, OAuth 설정 문제일 수 있음
-      console.warn("구글로 부터 리프레시 토큰을 받지 못했습니다.");
-      // 에러 반환 (엄격)
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.NO_REFRESH_TOKEN_RECEIVED },
-        { status: 500 },
+    // Refresh Token이 없는 경우 로그 메시지
+    if (!tokens.refreshToken) {
+      console.warn(
+        "구글로부터 리프레시 토큰을 받지 못했습니다. 이는 정상적인 상황일 수 있습니다.",
       );
     }
 
@@ -254,21 +421,19 @@ export async function GET(request: NextRequest) {
       sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
     });
 
-    if (!tokenId) {
-      return NextResponse.json(
-        { error: OAUTH_ERROR_MESSAGES.NO_REFRESH_TOKEN_RECEIVED },
-        { status: 500 },
-      );
+    // Refresh Token이 있는 경우에만 쿠키 설정
+    if (tokenId) {
+      cookieStore.set(COMMON_CONSTS.COOKIE_REFRESH_TOKEN, tokenId, {
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60, // 30일
+        httpOnly: true,
+        secure: true, // HTTPS 필수 (개발 환경도 HTTPS 사용)
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      });
+    } else {
+      // Refresh Token이 없는 경우, 기존 쿠키 제거 (있다면)
+      cookieStore.delete(COMMON_CONSTS.COOKIE_REFRESH_TOKEN);
     }
-
-    // Refresh Token UUID 로 쿠키 설정
-    cookieStore.set(COMMON_CONSTS.COOKIE_REFRESH_TOKEN, tokenId, {
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60, // 30일
-      httpOnly: true,
-      secure: true, // HTTPS 필수 (개발 환경도 HTTPS 사용)
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
-    });
 
     // CSRF 토큰 로테이션
     await rotateCsrfCookie();
@@ -284,9 +449,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(state.redirect_uri);
   } catch (error) {
     console.error("구글 콜백 에러 ====>", error);
-    return NextResponse.json(
-      { error: OAUTH_ERROR_MESSAGES.FAILED_TO_TRY_CALLBACK },
-      { status: 500 },
+    const errorUrl = new URL("/signin", getPublicURL());
+    errorUrl.searchParams.set("error", "callback_failed");
+    errorUrl.searchParams.set(
+      "message",
+      "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
     );
+    return NextResponse.redirect(errorUrl);
   }
 }
