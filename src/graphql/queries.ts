@@ -38,6 +38,25 @@ export const GET_USER_BY_EMAIL = gql`
   }
 `;
 
+export const GET_USER_BY_EMAIL_AND_PROVIDER = gql`
+  query GetUserByEmailAndProvider($email: String!, $provider: String!) {
+    user(
+      where: { email: { _eq: $email }, provider: { _eq: $provider } }
+    ) {
+      id
+      email
+      name
+      profile_image
+      provider
+      provider_id
+      accept_marketing
+      is_admin
+      created_at
+      updated_at
+    }
+  }
+`;
+
 export const GET_MY_INFO = gql`
   query GetMyInfo {
     user {

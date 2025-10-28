@@ -1,20 +1,23 @@
 import { ApolloClient } from "@apollo/client-integration-nextjs";
 import {
+  GetUserByEmailAndProviderQuery,
+  GetUserByEmailAndProviderQueryVariables,
   GetUserByEmailQuery,
   GetUserByEmailQueryVariables,
   RegisterUserWithTokenMutation,
   RegisterUserWithTokenMutationVariables,
   SaveRefreshTokenMutation,
   SaveRefreshTokenMutationVariables,
-  UpdateUserProviderWithTokenMutation,
-  UpdateUserProviderWithTokenMutationVariables,
 } from "@/generated/graphql";
 import {
   REGISTER_USER_WITH_TOKEN,
   SAVE_REFRESH_TOKEN,
-  UPDATE_USER_PROVIDER_WITH_TOKEN,
 } from "@/graphql/mutations";
-import { GET_USER_BY_EMAIL } from "@/graphql/queries";
+import {
+  GET_USER_BY_EMAIL,
+  GET_USER_BY_EMAIL_AND_PROVIDER,
+} from "@/graphql/queries";
+
 import type { OAuthTokens, OAuthUser } from "./callback-utils";
 
 export interface UserProcessingParams {
@@ -43,14 +46,14 @@ export async function processUser(
 
   // 사용자 조회
   const { data: hasuraUser } = await client.query<
-    GetUserByEmailQuery,
-    GetUserByEmailQueryVariables
+    GetUserByEmailAndProviderQuery,
+    GetUserByEmailAndProviderQueryVariables
   >({
-    query: GET_USER_BY_EMAIL,
-    variables: { email: oauthUser.email },
+    query: GET_USER_BY_EMAIL_AND_PROVIDER,
+    variables: { email: oauthUser.email, provider },
   });
 
-  const foundUserByEmail = hasuraUser?.user?.[0];
+  const foundUser = hasuraUser?.user?.[0];
 
   // Refresh Token이 있는 경우에만 토큰 객체 생성
   const tokenObject = tokens.refreshToken
@@ -68,66 +71,32 @@ export async function processUser(
   let shouldRedirectToRegister = false;
   let tokenId: string | null = null;
 
-  if (foundUserByEmail) {
-    // Case 1: 이메일로 이미 등록된 사용자인데 다른 provider로 로그인 된 경우
-    if (foundUserByEmail.provider !== provider) {
-      if (tokenObject) {
-        // Provider 업데이트 + Refresh Token 생성 (트랜잭션)
-        const { data: updatedUser, error: updateError } = await client.mutate<
-          UpdateUserProviderWithTokenMutation,
-          UpdateUserProviderWithTokenMutationVariables
-        >({
-          mutation: UPDATE_USER_PROVIDER_WITH_TOKEN,
-          variables: {
-            email: oauthUser.email,
-            provider: provider,
-            provider_id: oauthUser.sub,
-            user_id: foundUserByEmail.id,
+  if (foundUser) {
+    // Case 1: 이미 가입된 사용자
+    userId = foundUser.id;
+    if (tokenObject) {
+      // 기존 사용자에 Refresh Token만 추가
+      const { data: tokenData, error: tokenError } = await client.mutate<
+        SaveRefreshTokenMutation,
+        SaveRefreshTokenMutationVariables
+      >({
+        mutation: SAVE_REFRESH_TOKEN,
+        variables: {
+          object: {
+            user_id: userId,
+            provider: tokenObject.provider,
             refresh_token: tokenObject.refresh_token,
             expired_at: tokenObject.expired_at,
           },
-        });
+        },
+      });
 
-        if (
-          updateError ||
-          !updatedUser?.update_user?.returning?.[0] ||
-          !updatedUser?.insert_user_tokens_one?.id
-        ) {
-          throw new Error("사용자 정보 업데이트에 실패했습니다.");
-        }
-
-        userId = updatedUser.update_user.returning[0].id;
-        tokenId = updatedUser.insert_user_tokens_one.id;
-      } else {
-        throw new Error("리프레시 토큰이 필요합니다.");
-      }
-    } else {
-      // 이미 해당 provider로 등록된 사용자
-      userId = foundUserByEmail.id;
-      if (tokenObject) {
-        // 기존 사용자에 Refresh Token만 추가
-        const { data: tokenData, error: tokenError } = await client.mutate<
-          SaveRefreshTokenMutation,
-          SaveRefreshTokenMutationVariables
-        >({
-          mutation: SAVE_REFRESH_TOKEN,
-          variables: {
-            object: {
-              user_id: userId,
-              provider: tokenObject.provider,
-              refresh_token: tokenObject.refresh_token,
-              expired_at: tokenObject.expired_at,
-            },
-          },
-        });
-
-        if (!tokenError && tokenData?.insert_user_tokens_one?.id) {
-          tokenId = tokenData.insert_user_tokens_one.id;
-        }
+      if (!tokenError && tokenData?.insert_user_tokens_one?.id) {
+        tokenId = tokenData.insert_user_tokens_one.id;
       }
     }
   } else {
-    // Case 2: 이메일로 찾아지지 않은 경우, 유저 생성
+    // Case 2: 신규 사용자, 유저 생성
     if (tokenObject) {
       // Race Condition 방지를 위한 재시도 로직
       const result = await createUserWithRetry({
