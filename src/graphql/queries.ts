@@ -27,6 +27,13 @@ export const GET_USER_BY_EMAIL = gql`
       id
       email
       name
+      profile_image
+      provider
+      provider_id
+      accept_marketing
+      is_admin
+      created_at
+      updated_at
     }
   }
 `;
