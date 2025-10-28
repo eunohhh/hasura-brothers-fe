@@ -9,6 +9,7 @@ export default function LogoutPage() {
 
   const handleLogout = async () => {
     const response = await fetch("/api/auth/signout", {
+      method: "DELETE",
       headers: {
         "x-csrf-token": getCsrfToken() || "",
       },

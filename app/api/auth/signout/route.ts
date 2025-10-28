@@ -1,5 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import {
+  RevokeRefreshTokenMutation,
+  RevokeRefreshTokenMutationVariables,
+} from "@/generated/graphql";
 import { REVOKE_REFRESH_TOKEN } from "@/graphql/mutations";
 import { getAdminClient } from "@/lib/apollo/server-admin";
 import { rotateCsrfCookie } from "@/lib/auth/csrf-server-utils";
@@ -18,9 +22,12 @@ export async function DELETE() {
     // 3️⃣ DB에서 expired_at 업데이트 (소프트 삭제)
     if (tokenId) {
       const client = getAdminClient();
-      await client.mutate({
+      await client.mutate<
+        RevokeRefreshTokenMutation,
+        RevokeRefreshTokenMutationVariables
+      >({
         mutation: REVOKE_REFRESH_TOKEN,
-        variables: { id: tokenId, expired_at: new Date().toISOString() },
+        variables: { tokenId: tokenId },
       });
     }
 
