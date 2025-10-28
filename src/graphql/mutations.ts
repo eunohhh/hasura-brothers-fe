@@ -60,7 +60,6 @@ export const DELETE_ALL_USER_TOKENS = gql`
 
 export const REGISTER_USER = gql`
   mutation RegisterUser(
-    $id: uuid!
     $email: String
     $name: String
     $profile_image: String
@@ -70,7 +69,6 @@ export const REGISTER_USER = gql`
   ) {
     insert_user_one(
       object: {
-        id: $id
         email: $email
         name: $name
         profile_image: $profile_image
@@ -201,16 +199,18 @@ export const ADMIN_UPDATE_TEMPLATE_STAGE = gql`
   }
 `;
 
-export const ADMIN_UPDATE_TEMPLATE_TITLE = gql`
-  mutation AdminUpdateTemplateTitle($invitationId: uuid!, $metaTitle: String!) {
-    update_invitation_by_pk(
-      pk_columns: { id: $invitationId }
-    ) {
-      id
-      updated_at
-    }
-  }
-`;
+// TODO: Fix this mutation - invitation table doesn't have title field
+// export const ADMIN_UPDATE_TEMPLATE_TITLE = gql`
+//   mutation AdminUpdateTemplateTitle($invitationId: uuid!, $metaTitle: String!) {
+//     update_invitation_by_pk(
+//       pk_columns: { id: $invitationId }
+//       _set: { title: $metaTitle }
+//     ) {
+//       id
+//       updated_at
+//     }
+//   }
+// `;
 
 export const ADMIN_DELETE_TEMPLATE = gql`
   mutation AdminDeleteTemplate($id: uuid!) {
@@ -219,15 +219,6 @@ export const ADMIN_DELETE_TEMPLATE = gql`
     }
   }
 `;
-
-// TODO: Implement invitation duplication logic
-// export const ADMIN_DUPLICATE_INVITATION = gql`
-//   mutation AdminDuplicateInvitation($sourceInvitationId: uuid!) {
-//     insert_invitation_one(object: { id: $sourceInvitationId }) {
-//       id
-//     }
-//   }
-// `;
 
 export const ADMIN_UPDATE_TEMPLATE_ORDERS = gql`
   mutation AdminUpdateTemplateOrders($updates: [template_insert_input!]!) {
@@ -386,12 +377,14 @@ export const UPDATE_COMMENT = gql`
 
 export const DELETE_COMMENT = gql`
   mutation DeleteComment($id: uuid!, $password: String!) {
-    update_invitation_comment_by_pk(
-      pk_columns: { id: $id }
+    update_invitation_comment(
+      where: { 
+        id: { _eq: $id }
+        password: { _eq: $password }
+      }
       _set: { removed_at: "now()" }
     ) {
-      id
-      removed_at
+      affected_rows
     }
   }
 `;
@@ -493,8 +486,7 @@ export const UPDATE_INVITATION_META = gql`
   ) {
     update_invitation_by_pk(
       pk_columns: { id: $id }
-      _set: {
-      }
+      _set: { updated_at: "1970-01-01T00:00:00Z" }
     ) {
       id
       updated_at
