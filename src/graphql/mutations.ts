@@ -35,10 +35,13 @@ export const REVOKE_REFRESH_TOKEN = gql`
   }
 `;
 
-export const DELETE_TOKEN_BY_ID = gql`
-  mutation DeleteTokenById($tokenId: uuid!) {
-    delete_user_tokens_by_pk(id: $tokenId) {
-      id
+export const REVOKE_REFRESH_TOKEN_ALL = gql`
+  mutation RevokeRefreshTokenAll($userId: uuid!) {
+    update_user_tokens(
+      where: { user_id: { _eq: $userId } }
+      _set: { expired_at: "now()" }
+    ) {
+      affected_rows
     }
   }
 `;
