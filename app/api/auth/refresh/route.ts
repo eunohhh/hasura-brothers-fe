@@ -1,269 +1,117 @@
-// app/api/auth/refresh/route.ts
-import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-import { SERVER_CONSTS } from "@/constants/server.consts";
-import { GetRefreshTokenByIdQuery } from "@/generated/graphql";
+import { NextResponse } from "next/server";
+import { GetRefreshTokenByPkQuery } from "@/generated/graphql";
+import { GET_REFRESH_TOKEN_BY_PK } from "@/graphql/queries";
+import { getAdminClient } from "@/lib/apollo/server-admin";
+import { rotateCsrfCookie } from "@/lib/auth/csrf-server-utils";
+import { signJWTToken } from "@/lib/auth/token-server-utils";
 import {
-  DELETE_TOKEN_BY_ID,
-  UPDATE_TOKEN_LAST_USED_BY_ID,
-} from "@/graphql/mutations";
-import { GET_REFRESH_TOKEN_BY_ID } from "@/graphql/queries";
-import { getAdminClient } from "@/lib/apollo-admin-client";
-import { withCsrfProtection } from "@/lib/csrf";
+  COMMON_CONSTS,
+  OAUTH_ERROR_MESSAGES,
+} from "@/lib/constants/consts-common";
 
-// POST /api/auth/refresh: 저장된 refresh 토큰으로 새 access 토큰을 발급
-export const POST = withCsrfProtection(async (request: NextRequest) => {
+// GET /api/auth/refresh: 저장된 refresh 토큰으로 새 access 토큰을 발급
+export async function GET() {
   try {
+    // 쿠키의 리프레시 토큰 값 가져오기
     const cookieStore = await cookies();
-    const currentToken = cookieStore.get(
-      SERVER_CONSTS.COOKIE_AUTH_TOKEN,
-    )?.value;
-    const tokenId = cookieStore.get(SERVER_CONSTS.COOKIE_TOKEN_ID)?.value; // ✅ UUID 가져오기
+    const refreshToken = cookieStore.get(COMMON_CONSTS.COOKIE_REFRESH_TOKEN); // ✅ UUID 가져오기
 
-    if (!currentToken || !tokenId) {
-      return NextResponse.json({ error: "No token found" }, { status: 401 });
-    }
-
-    // 1. 현재 JWT에서 userId 추출
-    let userId: string;
-    let currentEmail: string;
-
-    try {
-      const verified = await jwtVerify(
-        currentToken,
-        new TextEncoder().encode(process.env.HASURA_JWT_SECRET!),
+    // TODO: 쿠키 값이 없을 경우 에러 처리 - 중요: 재로그인으로 이동해야 함
+    if (!refreshToken || !refreshToken.value) {
+      return NextResponse.json(
+        {
+          error: OAUTH_ERROR_MESSAGES.NO_REFRESH_TOKEN_FOUND,
+          requiresReauth: true,
+        },
+        { status: 401 },
       );
-
-      const claims = verified.payload["https://hasura.io/jwt/claims"] as {
-        "x-hasura-user-id": string;
-      };
-      userId = claims["x-hasura-user-id"];
-      currentEmail = verified.payload.email as string;
-    } catch {
-      // 만료된 토큰이어도 디코드 시도
-      const decoded = JSON.parse(
-        Buffer.from(currentToken.split(".")[1], "base64").toString(),
-      );
-      const claims = decoded["https://hasura.io/jwt/claims"];
-      userId = claims?.["x-hasura-user-id"];
-      currentEmail = decoded.email;
     }
 
-    if (!userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    // ✅ 2. Token ID로 Refresh Token 가져오기
+    // 현재 refresh Token(uuid)로 DB에서 리프레시 토큰 조회
     const client = getAdminClient();
-    const { data: tokenData, error } =
-      await client.query<GetRefreshTokenByIdQuery>({
-        query: GET_REFRESH_TOKEN_BY_ID,
-        variables: { tokenId },
+    const { data: refreshTokenData, error } =
+      await client.query<GetRefreshTokenByPkQuery>({
+        query: GET_REFRESH_TOKEN_BY_PK,
+        variables: { id: refreshToken.value },
       });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (!tokenData?.user_tokens_by_pk) {
-      // Token ID가 유효하지 않거나 삭제됨 (강제 로그아웃된 경우)
+    // 토큰이 아예 없을 경우(삭제되었거나 존재하지 않음)
+    if (!refreshTokenData || !refreshTokenData.user_tokens_by_pk) {
       return NextResponse.json(
-        { error: "No refresh token found", requiresReauth: true },
-        { status: 401 },
-      );
-    }
-
-    // ✅ 보안: 토큰의 user_id와 JWT의 user_id가 일치하는지 확인
-    if (tokenData.user_tokens_by_pk.user_id !== userId) {
-      return NextResponse.json(
-        { error: "Token mismatch", requiresReauth: true },
-        { status: 401 },
-      );
-    }
-
-    const storedToken = tokenData.user_tokens_by_pk;
-    const provider = storedToken.provider?.toUpperCase();
-
-    if (!provider) {
-      console.error("Refresh token is missing provider info");
-      return NextResponse.json(
-        { error: "Unsupported OAuth provider", requiresReauth: true },
-        { status: 401 },
-      );
-    }
-
-    const latestUserFromDb = storedToken.user;
-    let latestUserInfo = {
-      email: currentEmail ?? latestUserFromDb?.email ?? "",
-      name: latestUserFromDb?.name,
-      picture: null as string | null,
-    };
-
-    const handleExpiredRefreshToken = async (message: string) => {
-      const { error: deleteError } = await client.mutate({
-        mutation: DELETE_TOKEN_BY_ID,
-        variables: { tokenId },
-      });
-
-      if (deleteError) {
-        console.error("Failed to delete token:", deleteError);
-      }
-
-      return NextResponse.json(
-        { error: message, requiresReauth: true },
-        { status: 401 },
-      );
-    };
-
-    let newTokens: any;
-
-    if (provider === "GOOGLE") {
-      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-        console.error("Missing Google OAuth credentials for refresh");
-        return NextResponse.json(
-          { error: "OAuth configuration incomplete" },
-          { status: 500 },
-        );
-      }
-
-      const refreshResponse = await fetch(
-        "https://oauth2.googleapis.com/token",
         {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: process.env.GOOGLE_CLIENT_ID!,
-            client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-            refresh_token: storedToken.refresh_token,
-            grant_type: "refresh_token",
-          }),
+          error: OAUTH_ERROR_MESSAGES.NO_REFRESH_TOKEN_FOUND,
+          requiresReauth: true,
         },
-      );
-
-      if (!refreshResponse.ok) {
-        return handleExpiredRefreshToken("Refresh token expired");
-      }
-
-      newTokens = await refreshResponse.json();
-
-      if (newTokens.id_token) {
-        const idTokenPayload = JSON.parse(
-          Buffer.from(newTokens.id_token.split(".")[1], "base64").toString(),
-        );
-
-        latestUserInfo = {
-          email: idTokenPayload.email,
-          name: idTokenPayload.name,
-          picture: idTokenPayload.picture,
-        };
-      }
-    } else if (provider === "KAKAO") {
-      if (!process.env.KAKAO_CLIENT_ID || !process.env.KAKAO_CLIENT_SECRET) {
-        console.error("Missing Kakao OAuth credentials for refresh");
-        return NextResponse.json(
-          { error: "OAuth configuration incomplete" },
-          { status: 500 },
-        );
-      }
-
-      const params = new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: process.env.KAKAO_CLIENT_ID!,
-        client_secret: process.env.KAKAO_CLIENT_SECRET!,
-        refresh_token: storedToken.refresh_token,
-      });
-
-      const refreshResponse = await fetch(
-        "https://kauth.kakao.com/oauth/token",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: params,
-        },
-      );
-
-      if (!refreshResponse.ok) {
-        return handleExpiredRefreshToken("Refresh token expired");
-      }
-
-      newTokens = await refreshResponse.json();
-
-      if (newTokens.access_token) {
-        const userInfoResponse = await fetch(
-          "https://kapi.kakao.com/v2/user/me",
-          {
-            headers: { Authorization: `Bearer ${newTokens.access_token}` },
-          },
-        );
-
-        if (userInfoResponse.ok) {
-          const kakaoUser = await userInfoResponse.json();
-          const account = kakaoUser?.kakao_account ?? {};
-          const profile = account?.profile ?? {};
-          latestUserInfo = {
-            email: account.email ?? latestUserInfo.email,
-            name: profile.nickname ?? latestUserInfo.name,
-            picture:
-              profile.profile_image_url ||
-              kakaoUser?.properties?.profile_image ||
-              latestUserInfo.picture,
-          };
-        }
-      }
-    } else {
-      console.error("Unsupported refresh provider:", provider);
-      return NextResponse.json(
-        { error: "Unsupported OAuth provider", requiresReauth: true },
         { status: 401 },
       );
     }
 
-    // 5. 새로운 JWT 생성
-    const newJwt = await new SignJWT({
-      sub: userId,
-      email: latestUserInfo.email,
-      name: latestUserInfo.name,
-      picture: latestUserInfo.picture,
-      "https://hasura.io/jwt/claims": {
-        "x-hasura-allowed-roles": ["user"],
-        "x-hasura-default-role": "user",
-        "x-hasura-user-id": userId,
-      },
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("15m")
-      .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
+    const storedToken = refreshTokenData.user_tokens_by_pk;
 
-    // 6. 쿠키 업데이트
-    cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, newJwt, {
+    // expired_at 체크 - 만료된 리프레시 토큰 처리
+    const now = new Date();
+    const expiresAt = new Date(storedToken.expired_at);
+    const isExpired = expiresAt <= now;
+
+    // ✅ 만료된 경우 재인증 요청
+    if (isExpired) {
+      // 삭제는 하지 않고(cron job으로 주기적으로 삭제) 재인증 요구 필수
+      return NextResponse.json(
+        {
+          error: OAUTH_ERROR_MESSAGES.REFRESH_TOKEN_EXPIRED,
+          requiresReauth: true,
+        },
+        { status: 401 },
+      );
+    }
+
+    // ✅ 만료되지 않은 경우: 새 access token(JWT)만 발급 (refresh token은 재사용)
+    // email 없을 경우 에러처리
+    if (!refreshTokenData.user_tokens_by_pk.user.email) {
+      return NextResponse.json(
+        { error: OAUTH_ERROR_MESSAGES.USER_EMAIL_NOT_FOUND },
+        { status: 500 },
+      );
+    }
+
+    // 새로운 access token(JWT) 생성
+    const newJwt = await signJWTToken({
+      sub: refreshTokenData.user_tokens_by_pk.user_id,
+      email: refreshTokenData.user_tokens_by_pk.user.email,
+      minutes: 10,
+    });
+
+    // Access Token 쿠키 업데이트
+    // ** JWT는 10분 만료, 쿠키는 refresh token 만료 시간과 동일하게 유지
+    // → JWT 만료 시에도 쿠키는 남아있어 자동 refresh 가능
+    cookieStore.set(COMMON_CONSTS.COOKIE_ACCESS_TOKEN, newJwt, {
       path: "/",
-      maxAge: 15 * 60,
+      maxAge: Math.floor((expiresAt.getTime() - now.getTime()) / 1000), // refresh token 남은 시간
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true, // HTTPS 필수 (개발 환경도 HTTPS 사용)
+      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
     });
 
-    // ✅ 7. 마지막 사용 시간 업데이트
-    const { error: updateError } = await client.mutate({
-      mutation: UPDATE_TOKEN_LAST_USED_BY_ID,
-      variables: { tokenId },
-    });
+    // CSRF 토큰 로테이션
+    await rotateCsrfCookie();
 
-    if (updateError) {
-      console.error("Failed to update last used:", updateError);
-    }
-
-    return NextResponse.json({
-      success: true,
-      token: newJwt,
-      expiresIn: newTokens.expires_in,
-    });
-  } catch (error) {
-    console.error("Token refresh error:", error);
+    // 성공 응답
     return NextResponse.json(
-      { error: "Failed to refresh token" },
+      {
+        success: true,
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("리프레시 토큰 갱신 에러 ====>", error);
+    return NextResponse.json(
+      { error: OAUTH_ERROR_MESSAGES.FAILED_TO_REFRESH_TOKEN },
       { status: 500 },
     );
   }
-});
+}

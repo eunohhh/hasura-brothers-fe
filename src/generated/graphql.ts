@@ -7258,6 +7258,7 @@ export type User_Stream_Cursor_Value_Input = {
 export type User_Tokens = {
   __typename?: 'user_tokens';
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  expired_at?: Maybe<Scalars['timestamptz']['output']>;
   id: Scalars['uuid']['output'];
   ip_address?: Maybe<Scalars['inet']['output']>;
   last_used_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -7323,6 +7324,7 @@ export type User_Tokens_Bool_Exp = {
   _not?: InputMaybe<User_Tokens_Bool_Exp>;
   _or?: InputMaybe<Array<User_Tokens_Bool_Exp>>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expired_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   ip_address?: InputMaybe<Inet_Comparison_Exp>;
   last_used_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -7343,6 +7345,7 @@ export enum User_Tokens_Constraint {
 /** input type for inserting data into table "user_tokens" */
 export type User_Tokens_Insert_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  expired_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   ip_address?: InputMaybe<Scalars['inet']['input']>;
   last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7358,6 +7361,7 @@ export type User_Tokens_Insert_Input = {
 export type User_Tokens_Max_Fields = {
   __typename?: 'user_tokens_max_fields';
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  expired_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['uuid']['output']>;
   last_used_at?: Maybe<Scalars['timestamptz']['output']>;
   provider?: Maybe<Scalars['String']['output']>;
@@ -7370,6 +7374,7 @@ export type User_Tokens_Max_Fields = {
 /** order by max() on columns of table "user_tokens" */
 export type User_Tokens_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  expired_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   last_used_at?: InputMaybe<Order_By>;
   provider?: InputMaybe<Order_By>;
@@ -7383,6 +7388,7 @@ export type User_Tokens_Max_Order_By = {
 export type User_Tokens_Min_Fields = {
   __typename?: 'user_tokens_min_fields';
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  expired_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['uuid']['output']>;
   last_used_at?: Maybe<Scalars['timestamptz']['output']>;
   provider?: Maybe<Scalars['String']['output']>;
@@ -7395,6 +7401,7 @@ export type User_Tokens_Min_Fields = {
 /** order by min() on columns of table "user_tokens" */
 export type User_Tokens_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  expired_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   last_used_at?: InputMaybe<Order_By>;
   provider?: InputMaybe<Order_By>;
@@ -7423,6 +7430,7 @@ export type User_Tokens_On_Conflict = {
 /** Ordering options when selecting data from "user_tokens". */
 export type User_Tokens_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  expired_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   ip_address?: InputMaybe<Order_By>;
   last_used_at?: InputMaybe<Order_By>;
@@ -7444,6 +7452,8 @@ export enum User_Tokens_Select_Column {
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
+  ExpiredAt = 'expired_at',
+  /** column name */
   Id = 'id',
   /** column name */
   IpAddress = 'ip_address',
@@ -7464,6 +7474,7 @@ export enum User_Tokens_Select_Column {
 /** input type for updating data in table "user_tokens" */
 export type User_Tokens_Set_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  expired_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   ip_address?: InputMaybe<Scalars['inet']['input']>;
   last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7485,6 +7496,7 @@ export type User_Tokens_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type User_Tokens_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  expired_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['uuid']['input']>;
   ip_address?: InputMaybe<Scalars['inet']['input']>;
   last_used_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7499,6 +7511,8 @@ export type User_Tokens_Stream_Cursor_Value_Input = {
 export enum User_Tokens_Update_Column {
   /** column name */
   CreatedAt = 'created_at',
+  /** column name */
+  ExpiredAt = 'expired_at',
   /** column name */
   Id = 'id',
   /** column name */
@@ -8713,12 +8727,12 @@ export type ConfirmFreeOrderMutationVariables = Exact<{
 
 export type ConfirmFreeOrderMutation = { __typename?: 'mutation_root', update_order_by_pk?: { __typename?: 'order', id: any, status?: string | null, updated_at?: any | null } | null };
 
-export type GetRefreshTokenByIdQueryVariables = Exact<{
-  tokenId: Scalars['uuid']['input'];
+export type GetRefreshTokenByPkQueryVariables = Exact<{
+  id: Scalars['uuid']['input'];
 }>;
 
 
-export type GetRefreshTokenByIdQuery = { __typename?: 'query_root', user_tokens_by_pk?: { __typename?: 'user_tokens', id: any, refresh_token: string, user_id: any, provider: string, user: { __typename?: 'user', id: any, email?: string | null, name?: string | null } } | null };
+export type GetRefreshTokenByPkQuery = { __typename?: 'query_root', user_tokens_by_pk?: { __typename?: 'user_tokens', id: any, refresh_token: string, user_id: any, provider: string, expired_at?: any | null, user: { __typename?: 'user', id: any, email?: string | null, name?: string | null } } | null };
 
 export type GetUserByEmailQueryVariables = Exact<{
   email: Scalars['String']['input'];
@@ -8886,7 +8900,7 @@ export const SetInvitationVisibilityDocument = {"kind":"Document","definitions":
 export const LogInvitationVisitDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"LogInvitationVisit"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"user_tracking_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_invitation_visit_log_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"user_tracking_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"user_tracking_id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"visit_at"}}]}}]}}]} as unknown as DocumentNode<LogInvitationVisitMutation, LogInvitationVisitMutationVariables>;
 export const ConfirmOrderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConfirmOrder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"payment_key"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_order_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"payment_key"},"value":{"kind":"Variable","name":{"kind":"Name","value":"payment_key"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"payment_key"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<ConfirmOrderMutation, ConfirmOrderMutationVariables>;
 export const ConfirmFreeOrderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConfirmFreeOrder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_order_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<ConfirmFreeOrderMutation, ConfirmFreeOrderMutationVariables>;
-export const GetRefreshTokenByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRefreshTokenById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"refresh_token"}},{"kind":"Field","name":{"kind":"Name","value":"user_id"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<GetRefreshTokenByIdQuery, GetRefreshTokenByIdQueryVariables>;
+export const GetRefreshTokenByPkDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRefreshTokenByPk"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"refresh_token"}},{"kind":"Field","name":{"kind":"Name","value":"user_id"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"expired_at"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<GetRefreshTokenByPkQuery, GetRefreshTokenByPkQueryVariables>;
 export const GetUserByEmailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserByEmail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetUserByEmailQuery, GetUserByEmailQueryVariables>;
 export const GetMyInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetMyInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"provider_id"}},{"kind":"Field","name":{"kind":"Name","value":"accept_marketing"}},{"kind":"Field","name":{"kind":"Name","value":"is_admin"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetMyInfoQuery, GetMyInfoQueryVariables>;
 export const GetAllTemplatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAllTemplates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"template"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}},{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"order"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"order"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}},{"kind":"Field","name":{"kind":"Name","value":"invitation"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"layout_type"}},{"kind":"Field","name":{"kind":"Name","value":"brand_color"}},{"kind":"Field","name":{"kind":"Name","value":"font"}}]}}]}}]}}]} as unknown as DocumentNode<GetAllTemplatesQuery, GetAllTemplatesQueryVariables>;

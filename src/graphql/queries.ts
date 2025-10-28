@@ -1,12 +1,13 @@
 import { gql } from "@apollo/client";
 
-export const GET_REFRESH_TOKEN_BY_ID = gql`
-  query GetRefreshTokenById($tokenId: uuid!) {
-    user_tokens_by_pk(id: $tokenId) {
+export const GET_REFRESH_TOKEN_BY_PK = gql`
+  query GetRefreshTokenByPk($id: uuid!) {
+    user_tokens_by_pk(id: $id) {
       id
       refresh_token
       user_id
       provider
+      expired_at
       user {
         id
         email
