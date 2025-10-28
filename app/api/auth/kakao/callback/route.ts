@@ -105,6 +105,7 @@ export async function GET(request: NextRequest) {
       return createSuccessRedirect(state.register_uri, {
         email: user.email,
         provider: "KAKAO",
+        profileImage: user.picture ?? "",
       });
     }
 
