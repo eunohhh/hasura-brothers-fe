@@ -23,6 +23,18 @@ export const UPDATE_TOKEN_LAST_USED_BY_ID = gql`
   }
 `;
 
+export const REVOKE_REFRESH_TOKEN = gql`
+  mutation RevokeRefreshToken($tokenId: uuid!) {
+    update_user_tokens_by_pk(
+      pk_columns: { id: $tokenId }
+      _set: { expired_at: "now()" }
+    ) {
+      id
+      expired_at
+    }
+  }
+`;
+
 export const DELETE_TOKEN_BY_ID = gql`
   mutation DeleteTokenById($tokenId: uuid!) {
     delete_user_tokens_by_pk(id: $tokenId) {

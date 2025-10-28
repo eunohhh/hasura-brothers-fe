@@ -16,6 +16,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 type Documents = {
     "\n  mutation SaveRefreshToken($object: user_tokens_insert_input!) {\n    insert_user_tokens_one(object: $object) {\n      id\n    }\n  }\n": typeof types.SaveRefreshTokenDocument,
     "\n  mutation UpdateTokenLastUsedById($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { last_used_at: \"now()\", updated_at: \"now()\" }\n    ) {\n      id\n    }\n  }\n": typeof types.UpdateTokenLastUsedByIdDocument,
+    "\n  mutation RevokeRefreshToken($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { expired_at: \"now()\" }\n    ) {\n      id\n      expired_at\n    }\n  }\n": typeof types.RevokeRefreshTokenDocument,
     "\n  mutation DeleteTokenById($tokenId: uuid!) {\n    delete_user_tokens_by_pk(id: $tokenId) {\n      id\n    }\n  }\n": typeof types.DeleteTokenByIdDocument,
     "\n  mutation DeleteAllUserTokens($userId: uuid!) {\n    delete_user_tokens(where: { user_id: { _eq: $userId } }) {\n      affected_rows\n    }\n  }\n": typeof types.DeleteAllUserTokensDocument,
     "\n  mutation RegisterUser(\n    $id: uuid!\n    $email: String\n    $name: String\n    $profile_image: String\n    $provider: String\n    $provider_id: String\n    $accept_marketing: Boolean\n  ) {\n    insert_user_one(\n      object: {\n        id: $id\n        email: $email\n        name: $name\n        profile_image: $profile_image\n        provider: $provider\n        provider_id: $provider_id\n        accept_marketing: $accept_marketing\n      }\n    ) {\n      id\n      email\n      name\n      profile_image\n      is_admin\n      created_at\n    }\n  }\n": typeof types.RegisterUserDocument,
@@ -69,6 +70,7 @@ type Documents = {
 const documents: Documents = {
     "\n  mutation SaveRefreshToken($object: user_tokens_insert_input!) {\n    insert_user_tokens_one(object: $object) {\n      id\n    }\n  }\n": types.SaveRefreshTokenDocument,
     "\n  mutation UpdateTokenLastUsedById($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { last_used_at: \"now()\", updated_at: \"now()\" }\n    ) {\n      id\n    }\n  }\n": types.UpdateTokenLastUsedByIdDocument,
+    "\n  mutation RevokeRefreshToken($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { expired_at: \"now()\" }\n    ) {\n      id\n      expired_at\n    }\n  }\n": types.RevokeRefreshTokenDocument,
     "\n  mutation DeleteTokenById($tokenId: uuid!) {\n    delete_user_tokens_by_pk(id: $tokenId) {\n      id\n    }\n  }\n": types.DeleteTokenByIdDocument,
     "\n  mutation DeleteAllUserTokens($userId: uuid!) {\n    delete_user_tokens(where: { user_id: { _eq: $userId } }) {\n      affected_rows\n    }\n  }\n": types.DeleteAllUserTokensDocument,
     "\n  mutation RegisterUser(\n    $id: uuid!\n    $email: String\n    $name: String\n    $profile_image: String\n    $provider: String\n    $provider_id: String\n    $accept_marketing: Boolean\n  ) {\n    insert_user_one(\n      object: {\n        id: $id\n        email: $email\n        name: $name\n        profile_image: $profile_image\n        provider: $provider\n        provider_id: $provider_id\n        accept_marketing: $accept_marketing\n      }\n    ) {\n      id\n      email\n      name\n      profile_image\n      is_admin\n      created_at\n    }\n  }\n": types.RegisterUserDocument,
@@ -142,6 +144,10 @@ export function graphql(source: "\n  mutation SaveRefreshToken($object: user_tok
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UpdateTokenLastUsedById($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { last_used_at: \"now()\", updated_at: \"now()\" }\n    ) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateTokenLastUsedById($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { last_used_at: \"now()\", updated_at: \"now()\" }\n    ) {\n      id\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RevokeRefreshToken($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { expired_at: \"now()\" }\n    ) {\n      id\n      expired_at\n    }\n  }\n"): (typeof documents)["\n  mutation RevokeRefreshToken($tokenId: uuid!) {\n    update_user_tokens_by_pk(\n      pk_columns: { id: $tokenId }\n      _set: { expired_at: \"now()\" }\n    ) {\n      id\n      expired_at\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

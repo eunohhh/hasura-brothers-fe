@@ -1,13 +1,13 @@
 export const COMMON_CONSTS = {
-  CSRF_TOKEN: "aibee-csrf-token",
+  CSRF_TOKEN: "brothers-csrf-token",
   HEADER_CSRF_TOKEN: "x-csrf-token",
   HEADER_INTERNAL_REQUEST: "x-internal-request",
   DEFAULT_REGISTER_URI: "/signup",
   DEFAULT_REDIRECT_URI: "/",
-  PKCE_STATE: "oauth_state",
-  PKCE_VERIFIER: "pkce_verifier",
-  COOKIE_ACCESS_TOKEN: "aibee-access-token",
-  COOKIE_REFRESH_TOKEN: "aibee-refresh-token",
+  PKCE_STATE: "brothers-oauth-state",
+  PKCE_VERIFIER: "brothers-pkce-verifier",
+  COOKIE_ACCESS_TOKEN: "brothers-access-token",
+  COOKIE_REFRESH_TOKEN: "brothers-refresh-token",
 };
 
 export const OAUTH_ERROR_MESSAGES = {
