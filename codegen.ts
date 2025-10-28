@@ -1,12 +1,13 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
+import { env } from "./env";
 
 const config: CodegenConfig = {
   overwrite: true,
   schema: [
     {
-      [process.env.HASURA_GRAPHQL_ENDPOINT ?? "http://localhost:8080/v1/graphql"]: {
+      [env.HASURA_GRAPHQL_ENDPOINT ?? "http://localhost:8080/v1/graphql"]: {
         headers: {
-          "x-hasura-admin-secret": process.env.HASURA_ADMIN_SECRET ?? "",
+          "x-hasura-admin-secret": env.HASURA_ADMIN_SECRET ?? "",
         },
       },
     },

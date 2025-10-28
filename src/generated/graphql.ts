@@ -8718,7 +8718,7 @@ export type GetRefreshTokenByIdQueryVariables = Exact<{
 }>;
 
 
-export type GetRefreshTokenByIdQuery = { __typename?: 'query_root', user_tokens_by_pk?: { __typename?: 'user_tokens', id: any, refresh_token: string, user_id: any, provider?: string | null, user: { __typename?: 'user', id: any, email?: string | null, name?: string | null } } | null };
+export type GetRefreshTokenByIdQuery = { __typename?: 'query_root', user_tokens_by_pk?: { __typename?: 'user_tokens', id: any, refresh_token: string, user_id: any, provider: string, user: { __typename?: 'user', id: any, email?: string | null, name?: string | null } } | null };
 
 export type GetUserByEmailQueryVariables = Exact<{
   email: Scalars['String']['input'];
