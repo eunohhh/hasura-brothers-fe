@@ -50,7 +50,32 @@ export async function exchangeOAuthTokens(
     throw new Error("사용자 정보를 가져오는데 실패했습니다.");
   }
 
-  const user: OAuthUser = await userInfoResponse.json();
+  const rawUser = await userInfoResponse.json();
+
+  // 카카오 사용자 정보를 표준 형식으로 변환
+  let user: OAuthUser;
+  if (config.tokenUrl.includes("kakao")) {
+    // 카카오 응답 형식
+    user = {
+      email: rawUser.kakao_account?.email || "",
+      sub: rawUser.id?.toString() || "",
+      name:
+        rawUser.properties?.nickname ||
+        rawUser.kakao_account?.profile?.nickname ||
+        "",
+      picture:
+        rawUser.properties?.profile_image ||
+        rawUser.kakao_account?.profile?.profile_image_url ||
+        "",
+    };
+
+    if (!user.email) {
+      throw new Error("카카오로부터 이메일 정보를 받지 못했습니다.");
+    }
+  } else {
+    // 구글 응답 형식 (이미 표준 형식)
+    user = rawUser as OAuthUser;
+  }
 
   return {
     tokens: {

@@ -1,250 +1,121 @@
-// app/api/auth/kakao/callback/route.ts
-import { SignJWT } from "jose";
-import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-import { SERVER_CONSTS } from "@/constants/server.consts";
+import type { NextRequest } from "next/server";
+import { getAdminClient } from "@/lib/apollo/server-admin";
 import {
-  GetUserByEmailQuery,
-  SaveRefreshTokenMutation,
-} from "@/generated/graphql";
-import { SAVE_REFRESH_TOKEN } from "@/graphql/mutations";
-import { GET_USER_BY_EMAIL } from "@/graphql/queries";
-import { getAdminClient } from "@/lib/apollo-admin-client";
-import { rotateCsrfCookie } from "@/lib/csrf";
-import { getURL } from "@/lib/server-utils";
-import { KakaoUser } from "@/types/types";
+  createErrorRedirect,
+  createSuccessRedirect,
+  type OAuthCallbackState,
+  validateRedirectUrls,
+} from "@/lib/auth/callback/callback-utils";
+import {
+  exchangeOAuthTokens,
+  KAKAO_OAUTH_CONFIG,
+} from "@/lib/auth/callback/oauth-handler";
+import { setupSession } from "@/lib/auth/callback/session-handler";
+import { processUser } from "@/lib/auth/callback/user-handler";
+import { getPublicURL } from "@/lib/auth/common-utils";
+import { checkPKCECookies } from "@/lib/auth/pkce-utils";
 
-// GET /api/auth/kakao/callback: Kakao OAuth 이후 세션/CSRF 쿠키를 구성하고 리다이렉트
+// GET /api/auth/kakao/callback: OAuth 인증 후 세션/CSRF 쿠키 설정 및 리다이렉트
 export async function GET(request: NextRequest) {
-  if (
-    !process.env.KAKAO_CLIENT_ID ||
-    !process.env.KAKAO_CLIENT_SECRET ||
-    !process.env.KAKAO_CALLBACK_URL ||
-    !process.env.HASURA_JWT_SECRET
-  ) {
-    return NextResponse.json(
-      { error: "Kakao client ID, client secret or callback URL is not set" },
-      { status: 500 },
-    );
-  }
-
-  if (
-    !process.env.HASURA_GRAPHQL_ENDPOINT ||
-    !process.env.HASURA_ADMIN_SECRET
-  ) {
-    return NextResponse.json(
-      { error: "Hasura GraphQL endpoint or admin secret is not set" },
-      { status: 500 },
-    );
-  }
-
   try {
+    // 요청 파라미터 체크
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
     const stateParam = searchParams.get("state");
 
+    // PKCE 쿠키 체크
+    const publicUrl = getPublicURL();
+
     if (!code || !stateParam) {
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+      return createErrorRedirect(
+        "invalid_request",
+        "잘못된 요청입니다. 다시 시도해주세요.",
+        publicUrl,
+      );
     }
 
-    const jar = await cookies();
-    const savedState = jar.get("oauth_state")?.value;
-    const codeVerifier = jar.get("pkce_verifier")?.value;
-
-    if (!savedState || savedState !== stateParam) {
-      return NextResponse.json({ error: "Invalid state" }, { status: 400 });
-    }
-    if (!codeVerifier) {
-      return NextResponse.json(
-        { error: "Missing code_verifier" },
-        { status: 400 },
+    const { savedState, codeVerifier, cookieStore } = await checkPKCECookies();
+    if (!savedState || savedState !== stateParam || !codeVerifier) {
+      return createErrorRedirect(
+        "session_expired",
+        "로그인 시간이 만료되었습니다. 다시 시도해주세요.",
+        publicUrl,
       );
     }
 
     // state 파싱 및 검증
-    let state: { redirect_uri: string; register_uri: string; nonce: string };
+    let state: OAuthCallbackState;
     try {
       state = JSON.parse(decodeURIComponent(stateParam));
     } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid state format" },
-        { status: 400 },
+      return createErrorRedirect(
+        "invalid_state",
+        "잘못된 상태 정보입니다. 다시 시도해주세요.",
+        publicUrl,
       );
     }
 
-    // 1) 토큰 교환 (Authorization Code + PKCE + client_secret)
-    const tokenResponse = await fetch("https://kauth.kakao.com/oauth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        client_id: process.env.KAKAO_CLIENT_ID!,
-        client_secret: process.env.KAKAO_CLIENT_SECRET!,
-        redirect_uri: process.env.KAKAO_CALLBACK_URL!,
-        code_verifier: codeVerifier,
-      }),
+    // URL 검증 - Open Redirect 방지
+    if (
+      !validateRedirectUrls(state.redirect_uri, state.register_uri, publicUrl)
+    ) {
+      return createErrorRedirect(
+        "invalid_redirect_uri",
+        "잘못된 리다이렉트 URL입니다. 다시 시도해주세요.",
+        publicUrl,
+      );
+    }
+
+    // OAuth 토큰 교환 및 사용자 정보 가져오기
+    const kakaoCallbackUrl = `${publicUrl}/api/auth/kakao/callback`;
+    const { tokens, user } = await exchangeOAuthTokens({
+      code,
+      codeVerifier,
+      redirectUri: kakaoCallbackUrl,
+      config: KAKAO_OAUTH_CONFIG,
     });
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("Kakao token error:", errorText);
-      return NextResponse.json(
-        { error: "Failed to get tokens" },
-        { status: 500 },
-      );
-    }
-
-    const tokens = await tokenResponse.json();
-
-    if (!tokens.access_token) {
-      return NextResponse.json(
-        { error: "Failed to get access token" },
-        { status: 500 },
-      );
-    }
-
-    // 2. 유저 정보 가져오기
-    const userInfoResponse = await fetch("https://kapi.kakao.com/v2/user/me", {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-
-    if (!userInfoResponse.ok) {
-      return NextResponse.json(
-        { error: "Failed to get user info" },
-        { status: 500 },
-      );
-    }
-
-    const kakaoUser: KakaoUser = await userInfoResponse.json();
-
-    // 카카오 사용자 정보를 Google 형식과 호환되도록 변환
-    const email = kakaoUser.kakao_account?.email;
-    if (!email) {
-      return NextResponse.json(
-        { error: "Email is required but not provided by Kakao" },
-        { status: 400 },
-      );
-    }
-
-    const userInfo = {
-      id: kakaoUser.id.toString(),
-      email,
-      name: kakaoUser.properties.nickname,
-      picture:
-        kakaoUser.properties.profile_image ||
-        kakaoUser.kakao_account.profile.profile_image_url ||
-        "",
-    };
-
-    // 3. Hasura에서 유저 확인
+    // 사용자 처리 (트랜잭션 + Race Condition 방지)
     const client = getAdminClient();
-
-    const { data: hasuraUser } = await client.query<GetUserByEmailQuery>({
-      query: GET_USER_BY_EMAIL,
-      variables: { email: userInfo.email },
+    const processedUser = await processUser({
+      oauthUser: user,
+      tokens,
+      provider: "KAKAO",
+      client,
     });
 
-    const foundUser = hasuraUser?.user?.[0];
+    // 세션 설정 (JWT 생성, 쿠키 설정, CSRF 토큰 로테이션)
+    await setupSession({
+      userId: processedUser.userId,
+      email: user.email,
+      tokenId: processedUser.tokenId,
+      cookieStore,
+    });
 
-    // 등록되지 않은 유저면 토큰 저장/쿠키 발급 없이 회원가입으로 이동
-    if (!foundUser) {
-      const registerParams = new URLSearchParams({
-        name: userInfo.name,
-        email: userInfo.email,
-        providerId: userInfo.id,
+    // Refresh Token이 없는 경우 로그 메시지
+    if (!tokens.refreshToken) {
+      console.warn(
+        "카카오로부터 리프레시 토큰을 받지 못했습니다. 이는 정상적인 상황일 수 있습니다.",
+      );
+    }
+
+    // 리다이렉트
+    if (processedUser.shouldRedirectToRegister) {
+      // 추가 정보 입력 필요 → register 페이지로
+      return createSuccessRedirect(state.register_uri, {
+        email: user.email,
         provider: "KAKAO",
-        profileImage: userInfo.picture,
-      });
-
-      const redirectUrl = `${state.register_uri}?${registerParams.toString()}`;
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
-    }
-
-    const userId = foundUser.id; // uuid
-
-    // ✅ 4. Refresh Token이 있으면 DB에 저장
-    let tokenId: string | null = null;
-
-    if (tokens.refresh_token) {
-      const { data: savedToken, error: saveError } =
-        await client.mutate<SaveRefreshTokenMutation>({
-          mutation: SAVE_REFRESH_TOKEN,
-          variables: {
-            object: {
-              user_id: userId,
-              provider: "KAKAO",
-              refresh_token: tokens.refresh_token,
-              user_agent: request.headers.get("user-agent"),
-              ip_address: request.headers.get("X-Forwarded-For") || null,
-              last_used_at: new Date().toISOString(),
-            },
-          },
-        });
-
-      if (saveError) {
-        console.error("Failed to save refresh token:", saveError);
-      } else {
-        tokenId = savedToken?.insert_user_tokens_one?.id || null;
-      }
-    }
-
-    // 5. JWT 생성 (10분으로 단축) - sub와 x-hasura-user-id는 uuid 사용
-    const jwt = await new SignJWT({
-      sub: userId,
-      email: userInfo.email,
-      name: userInfo.name,
-      picture: userInfo.picture,
-      "https://hasura.io/jwt/claims": {
-        "x-hasura-allowed-roles": ["user"],
-        "x-hasura-default-role": "user",
-        "x-hasura-user-id": userId,
-      },
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("10m") // ✅ 10분으로 변경
-      .sign(new TextEncoder().encode(process.env.HASURA_JWT_SECRET!));
-
-    // 6. 쿠키에 토큰 저장
-    const cookieStore = await cookies();
-
-    // Access Token (JWT)
-    cookieStore.set(SERVER_CONSTS.COOKIE_AUTH_TOKEN, jwt, {
-      path: "/",
-      maxAge: 10 * 60, // ✅ 10분
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
-
-    // ✅ Refresh Token ID만 저장 (실제 토큰은 DB에)
-    if (tokenId) {
-      cookieStore.set(SERVER_CONSTS.COOKIE_TOKEN_ID, tokenId, {
-        path: "/",
-        maxAge: 30 * 24 * 60 * 60, // 30일
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
       });
     }
 
-    await rotateCsrfCookie();
-
-    // 7. 리다이렉트 (토큰을 쿼리 파라미터로 전달)
-    const redirectParams = new URLSearchParams({
-      token: jwt,
-      success: "true",
-      redirect_uri: state.redirect_uri || "/",
-    });
-
-    // 기본 리다이렉트 경로 -> 무조건 고정 페이지여야 하고 토큰, state.redirect_uri 를 params로 전달
-    const clientCallbackUrl = getURL();
-
-    return NextResponse.redirect(
-      `${clientCallbackUrl}/callback?${redirectParams.toString()}`,
-    );
+    // 완전히 등록된 유저 → 원래 목적지로
+    return createSuccessRedirect(state.redirect_uri);
   } catch (error) {
-    console.error("Kakao callback error:", error);
-    return NextResponse.json({ error: "Failed to login" }, { status: 500 });
+    console.error("카카오 콜백 에러 ====>", error);
+    return createErrorRedirect(
+      "callback_failed",
+      "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
+      getPublicURL(),
+    );
   }
 }
