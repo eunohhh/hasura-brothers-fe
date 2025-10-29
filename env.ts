@@ -17,6 +17,10 @@ export const env = createEnv({
 		GOOGLE_CLIENT_SECRET: z.string().min(1),
 		KAKAO_CLIENT_ID: z.string().min(1),
 		KAKAO_CLIENT_SECRET: z.string().min(1),
+		GCS_PROJECT_ID: z.string().min(1),
+		GCS_CLIENT_EMAIL: z.string().min(1),
+		GCS_PRIVATE_KEY: z.string().min(1),
+		GCS_BUCKET_NAME: z.string().min(1),
 	},
 	client: {
 		NEXT_PUBLIC_GRAPHQL_ENDPOINT: z.string().min(1),
