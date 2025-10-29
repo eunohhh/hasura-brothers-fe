@@ -1,5 +1,6 @@
-// app/api/notify-upload-complete/route.ts
+// app/api/upload/complete/route.ts
 
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import {
   InsertVideoUploadMutation,
@@ -7,22 +8,27 @@ import {
 } from "@/generated/graphql";
 import { INSERT_VIDEO_UPLOAD } from "@/graphql/mutations";
 import { getAdminClient } from "@/lib/apollo/server-admin";
-// getHasuraAdminClient는 Hasura 연결을 위한 Apollo Client 또는 유사 클라이언트입니다.
-// (예시 코드는 바로 아래 '보너스' 섹션 참고)
-// auth()는 Next-Auth, Clerk, Lucia 등 사용하는 인증 라이브러리의 세션 함수입니다.
-// import { auth } from '@/lib/auth';
+import { verifyJWTToken } from "@/lib/auth/token-server-utils";
+import { COMMON_CONSTS } from "@/lib/constants/consts-common";
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. (필수) 사용자 인증 확인
-    // const session = await auth();
-    // if (!session?.user?.id) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-    // const userId = session.user.id;
+    // 1. (필수) 사용자 인증 확인 - 쿠키 기반
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get(
+      COMMON_CONSTS.COOKIE_ACCESS_TOKEN,
+    )?.value;
 
-    // (임시) 인증을 건너뛰고 userId 하드코딩 (실제로는 위 주석 사용)
-    const userId = "temp-user-id-123";
+    if (!accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { payload } = await verifyJWTToken(accessToken);
+    if (!payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = payload.sub;
 
     // 2. 클라이언트로부터 파일 정보 받기
     const body = await request.json();
@@ -40,10 +46,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Hasura Admin 클라이언트 가져오기
+    // 3. Hasura 뮤테이션 실행
     const client = getAdminClient();
-
-    // 4. Hasura 뮤테이션 실행
     const { data, error } = await client.mutate<
       InsertVideoUploadMutation,
       InsertVideoUploadMutationVariables
@@ -74,7 +78,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. 성공 응답 반환
+    // 4. 성공 응답 반환
     return NextResponse.json(data, { status: 201 }); // 201 Created
   } catch (error) {
     console.error("Error notifying upload:", error);
