@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,11 @@ function AuthedPage() {
       <Button type="button" onClick={handleLogout} className="cursor-pointer">
         Logout
       </Button>
+      <Link href="/authed/upload">
+        <Button asChild type="button" className="cursor-pointer">
+          Upload
+        </Button>
+      </Link>
     </div>
   );
 }

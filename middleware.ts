@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
 		}
 
 		if (isPublicOnlyRoute && isAuthed) {
-			return NextResponse.redirect(new URL("/", request.url));
+			return NextResponse.redirect(new URL("/authed", request.url));
 		}
 
 		if (!isPublicOnlyRoute && !isAuthed) {
