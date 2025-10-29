@@ -3849,6 +3849,10 @@ export type Mutation_Root = {
   delete_user_tokens?: Maybe<User_Tokens_Mutation_Response>;
   /** delete single row from the table: "user_tokens" */
   delete_user_tokens_by_pk?: Maybe<User_Tokens>;
+  /** delete data from the table: "video_uploads" */
+  delete_video_uploads?: Maybe<Video_Uploads_Mutation_Response>;
+  /** delete single row from the table: "video_uploads" */
+  delete_video_uploads_by_pk?: Maybe<Video_Uploads>;
   /** delete data from the table: "widget" */
   delete_widget?: Maybe<Widget_Mutation_Response>;
   /** delete single row from the table: "widget" */
@@ -3917,6 +3921,10 @@ export type Mutation_Root = {
   insert_user_tokens?: Maybe<User_Tokens_Mutation_Response>;
   /** insert a single row into the table: "user_tokens" */
   insert_user_tokens_one?: Maybe<User_Tokens>;
+  /** insert data into the table: "video_uploads" */
+  insert_video_uploads?: Maybe<Video_Uploads_Mutation_Response>;
+  /** insert a single row into the table: "video_uploads" */
+  insert_video_uploads_one?: Maybe<Video_Uploads>;
   /** insert data into the table: "widget" */
   insert_widget?: Maybe<Widget_Mutation_Response>;
   /** insert a single row into the table: "widget" */
@@ -4015,6 +4023,12 @@ export type Mutation_Root = {
   update_user_tokens_by_pk?: Maybe<User_Tokens>;
   /** update multiples rows of table: "user_tokens" */
   update_user_tokens_many?: Maybe<Array<Maybe<User_Tokens_Mutation_Response>>>;
+  /** update data of the table: "video_uploads" */
+  update_video_uploads?: Maybe<Video_Uploads_Mutation_Response>;
+  /** update single row of the table: "video_uploads" */
+  update_video_uploads_by_pk?: Maybe<Video_Uploads>;
+  /** update multiples rows of table: "video_uploads" */
+  update_video_uploads_many?: Maybe<Array<Maybe<Video_Uploads_Mutation_Response>>>;
   /** update data of the table: "widget" */
   update_widget?: Maybe<Widget_Mutation_Response>;
   /** update single row of the table: "widget" */
@@ -4206,6 +4220,18 @@ export type Mutation_RootDelete_User_TokensArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_User_Tokens_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Video_UploadsArgs = {
+  where: Video_Uploads_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Video_Uploads_By_PkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -4441,6 +4467,20 @@ export type Mutation_RootInsert_User_TokensArgs = {
 export type Mutation_RootInsert_User_Tokens_OneArgs = {
   object: User_Tokens_Insert_Input;
   on_conflict?: InputMaybe<User_Tokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Video_UploadsArgs = {
+  objects: Array<Video_Uploads_Insert_Input>;
+  on_conflict?: InputMaybe<Video_Uploads_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Video_Uploads_OneArgs = {
+  object: Video_Uploads_Insert_Input;
+  on_conflict?: InputMaybe<Video_Uploads_On_Conflict>;
 };
 
 
@@ -4789,6 +4829,28 @@ export type Mutation_RootUpdate_User_Tokens_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_Tokens_ManyArgs = {
   updates: Array<User_Tokens_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Video_UploadsArgs = {
+  _inc?: InputMaybe<Video_Uploads_Inc_Input>;
+  _set?: InputMaybe<Video_Uploads_Set_Input>;
+  where: Video_Uploads_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Video_Uploads_By_PkArgs = {
+  _inc?: InputMaybe<Video_Uploads_Inc_Input>;
+  _set?: InputMaybe<Video_Uploads_Set_Input>;
+  pk_columns: Video_Uploads_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Video_Uploads_ManyArgs = {
+  updates: Array<Video_Uploads_Updates>;
 };
 
 
@@ -5247,6 +5309,12 @@ export type Query_Root = {
   user_tokens_aggregate: User_Tokens_Aggregate;
   /** fetch data from the table: "user_tokens" using primary key columns */
   user_tokens_by_pk?: Maybe<User_Tokens>;
+  /** fetch data from the table: "video_uploads" */
+  video_uploads: Array<Video_Uploads>;
+  /** fetch aggregated fields from the table: "video_uploads" */
+  video_uploads_aggregate: Video_Uploads_Aggregate;
+  /** fetch data from the table: "video_uploads" using primary key columns */
+  video_uploads_by_pk?: Maybe<Video_Uploads>;
   /** fetch data from the table: "widget" */
   widget: Array<Widget>;
   /** fetch aggregated fields from the table: "widget" */
@@ -5603,6 +5671,29 @@ export type Query_RootUser_Tokens_AggregateArgs = {
 
 
 export type Query_RootUser_Tokens_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type Query_RootVideo_UploadsArgs = {
+  distinct_on?: InputMaybe<Array<Video_Uploads_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Video_Uploads_Order_By>>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
+};
+
+
+export type Query_RootVideo_Uploads_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Video_Uploads_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Video_Uploads_Order_By>>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
+};
+
+
+export type Query_RootVideo_Uploads_By_PkArgs = {
   id: Scalars['uuid']['input'];
 };
 
@@ -6058,6 +6149,14 @@ export type Subscription_Root = {
   user_tokens_by_pk?: Maybe<User_Tokens>;
   /** fetch data from the table in a streaming manner: "user_tokens" */
   user_tokens_stream: Array<User_Tokens>;
+  /** fetch data from the table: "video_uploads" */
+  video_uploads: Array<Video_Uploads>;
+  /** fetch aggregated fields from the table: "video_uploads" */
+  video_uploads_aggregate: Video_Uploads_Aggregate;
+  /** fetch data from the table: "video_uploads" using primary key columns */
+  video_uploads_by_pk?: Maybe<Video_Uploads>;
+  /** fetch data from the table in a streaming manner: "video_uploads" */
+  video_uploads_stream: Array<Video_Uploads>;
   /** fetch data from the table: "widget" */
   widget: Array<Widget>;
   /** fetch aggregated fields from the table: "widget" */
@@ -6524,6 +6623,36 @@ export type Subscription_RootUser_Tokens_StreamArgs = {
   batch_size: Scalars['Int']['input'];
   cursor: Array<InputMaybe<User_Tokens_Stream_Cursor_Input>>;
   where?: InputMaybe<User_Tokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootVideo_UploadsArgs = {
+  distinct_on?: InputMaybe<Array<Video_Uploads_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Video_Uploads_Order_By>>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
+};
+
+
+export type Subscription_RootVideo_Uploads_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Video_Uploads_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Video_Uploads_Order_By>>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
+};
+
+
+export type Subscription_RootVideo_Uploads_By_PkArgs = {
+  id: Scalars['uuid']['input'];
+};
+
+
+export type Subscription_RootVideo_Uploads_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Video_Uploads_Stream_Cursor_Input>>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
 };
 
 
@@ -7582,6 +7711,407 @@ export type Uuid_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['uuid']['input']>;
   _neq?: InputMaybe<Scalars['uuid']['input']>;
   _nin?: InputMaybe<Array<Scalars['uuid']['input']>>;
+};
+
+/** 영상 업로드 관리를 위한 테이블 */
+export type Video_Uploads = {
+  __typename?: 'video_uploads';
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type: Scalars['String']['output'];
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at: Scalars['timestamptz']['output'];
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['numeric']['output']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name: Scalars['String']['output'];
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path: Scalars['String']['output'];
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id: Scalars['uuid']['output'];
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['bigint']['output']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status: Scalars['String']['output'];
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at: Scalars['timestamptz']['output'];
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id: Scalars['uuid']['output'];
+};
+
+/** aggregated selection of "video_uploads" */
+export type Video_Uploads_Aggregate = {
+  __typename?: 'video_uploads_aggregate';
+  aggregate?: Maybe<Video_Uploads_Aggregate_Fields>;
+  nodes: Array<Video_Uploads>;
+};
+
+/** aggregate fields of "video_uploads" */
+export type Video_Uploads_Aggregate_Fields = {
+  __typename?: 'video_uploads_aggregate_fields';
+  avg?: Maybe<Video_Uploads_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Video_Uploads_Max_Fields>;
+  min?: Maybe<Video_Uploads_Min_Fields>;
+  stddev?: Maybe<Video_Uploads_Stddev_Fields>;
+  stddev_pop?: Maybe<Video_Uploads_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Video_Uploads_Stddev_Samp_Fields>;
+  sum?: Maybe<Video_Uploads_Sum_Fields>;
+  var_pop?: Maybe<Video_Uploads_Var_Pop_Fields>;
+  var_samp?: Maybe<Video_Uploads_Var_Samp_Fields>;
+  variance?: Maybe<Video_Uploads_Variance_Fields>;
+};
+
+
+/** aggregate fields of "video_uploads" */
+export type Video_Uploads_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Video_Uploads_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Video_Uploads_Avg_Fields = {
+  __typename?: 'video_uploads_avg_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "video_uploads". All fields are combined with a logical 'AND'. */
+export type Video_Uploads_Bool_Exp = {
+  _and?: InputMaybe<Array<Video_Uploads_Bool_Exp>>;
+  _not?: InputMaybe<Video_Uploads_Bool_Exp>;
+  _or?: InputMaybe<Array<Video_Uploads_Bool_Exp>>;
+  content_type?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  duration_seconds?: InputMaybe<Numeric_Comparison_Exp>;
+  file_name?: InputMaybe<String_Comparison_Exp>;
+  gcs_path?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  size_bytes?: InputMaybe<Bigint_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  uploaded_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "video_uploads" */
+export enum Video_Uploads_Constraint {
+  /** unique or primary key constraint on columns "gcs_path" */
+  VideoUploadsGcsPathKey = 'video_uploads_gcs_path_key',
+  /** unique or primary key constraint on columns "id" */
+  VideoUploadsPkey = 'video_uploads_pkey'
+}
+
+/** input type for incrementing numeric columns in table "video_uploads" */
+export type Video_Uploads_Inc_Input = {
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: InputMaybe<Scalars['numeric']['input']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: InputMaybe<Scalars['bigint']['input']>;
+};
+
+/** input type for inserting data into table "video_uploads" */
+export type Video_Uploads_Insert_Input = {
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type?: InputMaybe<Scalars['String']['input']>;
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: InputMaybe<Scalars['numeric']['input']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name?: InputMaybe<Scalars['String']['input']>;
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path?: InputMaybe<Scalars['String']['input']>;
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: InputMaybe<Scalars['bigint']['input']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status?: InputMaybe<Scalars['String']['input']>;
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** aggregate max on columns */
+export type Video_Uploads_Max_Fields = {
+  __typename?: 'video_uploads_max_fields';
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type?: Maybe<Scalars['String']['output']>;
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['numeric']['output']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name?: Maybe<Scalars['String']['output']>;
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path?: Maybe<Scalars['String']['output']>;
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id?: Maybe<Scalars['uuid']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['bigint']['output']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status?: Maybe<Scalars['String']['output']>;
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id?: Maybe<Scalars['uuid']['output']>;
+};
+
+/** aggregate min on columns */
+export type Video_Uploads_Min_Fields = {
+  __typename?: 'video_uploads_min_fields';
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type?: Maybe<Scalars['String']['output']>;
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['numeric']['output']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name?: Maybe<Scalars['String']['output']>;
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path?: Maybe<Scalars['String']['output']>;
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id?: Maybe<Scalars['uuid']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['bigint']['output']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status?: Maybe<Scalars['String']['output']>;
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id?: Maybe<Scalars['uuid']['output']>;
+};
+
+/** response of any mutation on the table "video_uploads" */
+export type Video_Uploads_Mutation_Response = {
+  __typename?: 'video_uploads_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Video_Uploads>;
+};
+
+/** on_conflict condition type for table "video_uploads" */
+export type Video_Uploads_On_Conflict = {
+  constraint: Video_Uploads_Constraint;
+  update_columns?: Array<Video_Uploads_Update_Column>;
+  where?: InputMaybe<Video_Uploads_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "video_uploads". */
+export type Video_Uploads_Order_By = {
+  content_type?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  duration_seconds?: InputMaybe<Order_By>;
+  file_name?: InputMaybe<Order_By>;
+  gcs_path?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  size_bytes?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  uploaded_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: video_uploads */
+export type Video_Uploads_Pk_Columns_Input = {
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id: Scalars['uuid']['input'];
+};
+
+/** select columns of table "video_uploads" */
+export enum Video_Uploads_Select_Column {
+  /** column name */
+  ContentType = 'content_type',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  DurationSeconds = 'duration_seconds',
+  /** column name */
+  FileName = 'file_name',
+  /** column name */
+  GcsPath = 'gcs_path',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  SizeBytes = 'size_bytes',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UploadedAt = 'uploaded_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "video_uploads" */
+export type Video_Uploads_Set_Input = {
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type?: InputMaybe<Scalars['String']['input']>;
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: InputMaybe<Scalars['numeric']['input']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name?: InputMaybe<Scalars['String']['input']>;
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path?: InputMaybe<Scalars['String']['input']>;
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: InputMaybe<Scalars['bigint']['input']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status?: InputMaybe<Scalars['String']['input']>;
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Video_Uploads_Stddev_Fields = {
+  __typename?: 'video_uploads_stddev_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Video_Uploads_Stddev_Pop_Fields = {
+  __typename?: 'video_uploads_stddev_pop_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Video_Uploads_Stddev_Samp_Fields = {
+  __typename?: 'video_uploads_stddev_samp_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "video_uploads" */
+export type Video_Uploads_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Video_Uploads_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Video_Uploads_Stream_Cursor_Value_Input = {
+  /** 파일의 MIME 타입 (Pre-signed URL 생성 시 사용). */
+  content_type?: InputMaybe<Scalars['String']['input']>;
+  /** 레코드가 처음 생성된 시간 (BE가 PENDING으로 예약한 시간). 클린업 로직에서 PENDING 레코드의 만료 시간을 판단하는 기준으로 사용됨. */
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: InputMaybe<Scalars['numeric']['input']>;
+  /** 사용자가 업로드한 원본 파일 이름 (FE에서 받은 정보). */
+  file_name?: InputMaybe<Scalars['String']['input']>;
+  /** GCS 버킷 내의 파일 경로 (videos/{user_id}/{unique_id}.mp4). CF에서 파일 참조 및 삭제 시 사용됨. */
+  gcs_path?: InputMaybe<Scalars['String']['input']>;
+  /** 영상 레코드의 고유 ID. Hasura Mutation 및 CF에서 참조됨. */
+  id?: InputMaybe<Scalars['uuid']['input']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: InputMaybe<Scalars['bigint']['input']>;
+  /** 상태 관리의 핵심. 현재 업로드/처리 단계를 나타냄 (PENDING, UPLOADED, READY, FAILED). */
+  status?: InputMaybe<Scalars['String']['input']>;
+  /** 마지막 상태 변경 시간 (Hasura Trigger 또는 BE/CF에서 업데이트). */
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** CF_Finalize가 실행되어 UPLOADED 상태가 되었을 때의 시간. */
+  uploaded_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 소유권 관리의 핵심. Hasura 권한 검사에 사용됨. */
+  user_id?: InputMaybe<Scalars['uuid']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Video_Uploads_Sum_Fields = {
+  __typename?: 'video_uploads_sum_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['numeric']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** update columns of table "video_uploads" */
+export enum Video_Uploads_Update_Column {
+  /** column name */
+  ContentType = 'content_type',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  DurationSeconds = 'duration_seconds',
+  /** column name */
+  FileName = 'file_name',
+  /** column name */
+  GcsPath = 'gcs_path',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  SizeBytes = 'size_bytes',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UploadedAt = 'uploaded_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Video_Uploads_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Video_Uploads_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Video_Uploads_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Video_Uploads_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Video_Uploads_Var_Pop_Fields = {
+  __typename?: 'video_uploads_var_pop_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Video_Uploads_Var_Samp_Fields = {
+  __typename?: 'video_uploads_var_samp_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Video_Uploads_Variance_Fields = {
+  __typename?: 'video_uploads_variance_fields';
+  /** 영상 길이(초). 후처리 시스템에서 분석 후 업데이트됨. */
+  duration_seconds?: Maybe<Scalars['Float']['output']>;
+  /** 파일 크기 (바이트). CF에서 GCS 완료 후 메타데이터로 업데이트됨. */
+  size_bytes?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "widget" */
@@ -8749,6 +9279,18 @@ export type ConfirmFreeOrderMutationVariables = Exact<{
 
 export type ConfirmFreeOrderMutation = { __typename?: 'mutation_root', update_order_by_pk?: { __typename?: 'order', id: any, status?: string | null, updated_at?: any | null } | null };
 
+export type InsertVideoUploadMutationVariables = Exact<{
+  user_id: Scalars['uuid']['input'];
+  gcs_path: Scalars['String']['input'];
+  file_name: Scalars['String']['input'];
+  content_type: Scalars['String']['input'];
+  size_bytes?: InputMaybe<Scalars['bigint']['input']>;
+  duration_seconds?: InputMaybe<Scalars['numeric']['input']>;
+}>;
+
+
+export type InsertVideoUploadMutation = { __typename?: 'mutation_root', insert_video_uploads_one?: { __typename?: 'video_uploads', id: any } | null };
+
 export type GetRefreshTokenByPkQueryVariables = Exact<{
   id: Scalars['uuid']['input'];
 }>;
@@ -8898,6 +9440,13 @@ export type GetInvitationCommentsQueryVariables = Exact<{
 
 export type GetInvitationCommentsQuery = { __typename?: 'query_root', invitation_comment: Array<{ __typename?: 'invitation_comment', id: any, invitation_id?: any | null, parent_id?: any | null, author?: string | null, author_profile_image?: string | null, body?: string | null, created_at?: any | null, updated_at?: any | null, replies: Array<{ __typename?: 'invitation_comment', id: any, parent_id?: any | null, author?: string | null, author_profile_image?: string | null, body?: string | null, created_at?: any | null, updated_at?: any | null }> }> };
 
+export type GetVideoUploadQueryVariables = Exact<{
+  id: Scalars['uuid']['input'];
+}>;
+
+
+export type GetVideoUploadQuery = { __typename?: 'query_root', video_uploads_by_pk?: { __typename?: 'video_uploads', id: any, user_id: any, status: string, gcs_path: string, file_name: string, content_type: string, size_bytes?: any | null, duration_seconds?: any | null, created_at: any, updated_at: any } | null };
+
 
 export const SaveRefreshTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveRefreshToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"user_tokens_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_user_tokens_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SaveRefreshTokenMutation, SaveRefreshTokenMutationVariables>;
 export const UpdateTokenLastUsedByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateTokenLastUsedById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tokenId"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"last_used_at"},"value":{"kind":"StringValue","value":"now()","block":false}},{"kind":"ObjectField","name":{"kind":"Name","value":"updated_at"},"value":{"kind":"StringValue","value":"now()","block":false}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<UpdateTokenLastUsedByIdMutation, UpdateTokenLastUsedByIdMutationVariables>;
@@ -8932,6 +9481,7 @@ export const SetInvitationVisibilityDocument = {"kind":"Document","definitions":
 export const LogInvitationVisitDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"LogInvitationVisit"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"user_tracking_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_invitation_visit_log_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitation_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"user_tracking_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"user_tracking_id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"visit_at"}}]}}]}}]} as unknown as DocumentNode<LogInvitationVisitMutation, LogInvitationVisitMutationVariables>;
 export const ConfirmOrderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConfirmOrder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"payment_key"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_order_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"payment_key"},"value":{"kind":"Variable","name":{"kind":"Name","value":"payment_key"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"payment_key"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<ConfirmOrderMutation, ConfirmOrderMutationVariables>;
 export const ConfirmFreeOrderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConfirmFreeOrder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_order_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"order_id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<ConfirmFreeOrderMutation, ConfirmFreeOrderMutationVariables>;
+export const InsertVideoUploadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertVideoUpload"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"user_id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gcs_path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"file_name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"content_type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"size_bytes"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"duration_seconds"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"numeric"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_video_uploads_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"user_id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"user_id"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"gcs_path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gcs_path"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"file_name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"file_name"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"content_type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"content_type"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"size_bytes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"size_bytes"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"duration_seconds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"duration_seconds"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<InsertVideoUploadMutation, InsertVideoUploadMutationVariables>;
 export const GetRefreshTokenByPkDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRefreshTokenByPk"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user_tokens_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"refresh_token"}},{"kind":"Field","name":{"kind":"Name","value":"user_id"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"expired_at"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<GetRefreshTokenByPkQuery, GetRefreshTokenByPkQueryVariables>;
 export const GetUserByEmailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserByEmail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"provider_id"}},{"kind":"Field","name":{"kind":"Name","value":"accept_marketing"}},{"kind":"Field","name":{"kind":"Name","value":"is_admin"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetUserByEmailQuery, GetUserByEmailQueryVariables>;
 export const GetUserByEmailAndProviderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserByEmailAndProvider"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"provider"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"user"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"provider"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"provider"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"provider"}},{"kind":"Field","name":{"kind":"Name","value":"provider_id"}},{"kind":"Field","name":{"kind":"Name","value":"accept_marketing"}},{"kind":"Field","name":{"kind":"Name","value":"is_admin"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetUserByEmailAndProviderQuery, GetUserByEmailAndProviderQueryVariables>;
@@ -8953,3 +9503,4 @@ export const GetAllRsvpAnswersDocument = {"kind":"Document","definitions":[{"kin
 export const GetMyRsvpAnswerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetMyRsvpAnswer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userTrackingId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invitation_rsvp_answer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"user_tracking_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userTrackingId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"user_tracking_id"}},{"kind":"Field","name":{"kind":"Name","value":"accepted"}},{"kind":"Field","name":{"kind":"Name","value":"form_values"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetMyRsvpAnswerQuery, GetMyRsvpAnswerQueryVariables>;
 export const GetRsvpAnswerCountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRsvpAnswerCount"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invitation_rsvp_answer_aggregate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"aggregate"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"count"}}]}}]}}]}}]} as unknown as DocumentNode<GetRsvpAnswerCountQuery, GetRsvpAnswerCountQueryVariables>;
 export const GetInvitationCommentsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInvitationComments"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invitation_comment"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"invitation_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invitationId"}}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"removed_at"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_is_null"},"value":{"kind":"BooleanValue","value":true}}]}},{"kind":"ObjectField","name":{"kind":"Name","value":"parent_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_is_null"},"value":{"kind":"BooleanValue","value":true}}]}}]}},{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"created_at"},"value":{"kind":"EnumValue","value":"desc"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"invitation_id"}},{"kind":"Field","name":{"kind":"Name","value":"parent_id"}},{"kind":"Field","name":{"kind":"Name","value":"author"}},{"kind":"Field","name":{"kind":"Name","value":"author_profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}},{"kind":"Field","alias":{"kind":"Name","value":"replies"},"name":{"kind":"Name","value":"invitation_comments"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"removed_at"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_is_null"},"value":{"kind":"BooleanValue","value":true}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"parent_id"}},{"kind":"Field","name":{"kind":"Name","value":"author"}},{"kind":"Field","name":{"kind":"Name","value":"author_profile_image"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]}}]} as unknown as DocumentNode<GetInvitationCommentsQuery, GetInvitationCommentsQueryVariables>;
+export const GetVideoUploadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetVideoUpload"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"video_uploads_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user_id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"gcs_path"}},{"kind":"Field","name":{"kind":"Name","value":"file_name"}},{"kind":"Field","name":{"kind":"Name","value":"content_type"}},{"kind":"Field","name":{"kind":"Name","value":"size_bytes"}},{"kind":"Field","name":{"kind":"Name","value":"duration_seconds"}},{"kind":"Field","name":{"kind":"Name","value":"created_at"}},{"kind":"Field","name":{"kind":"Name","value":"updated_at"}}]}}]}}]} as unknown as DocumentNode<GetVideoUploadQuery, GetVideoUploadQueryVariables>;

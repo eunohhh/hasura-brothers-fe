@@ -675,4 +675,26 @@ export const CONFIRM_FREE_ORDER = gql`
   }
 `;
 
-// (removed) Duplicate query was here; keep queries in src/graphql/queries.ts
+export const INSERT_VIDEO_UPLOAD = gql`
+  mutation InsertVideoUpload(
+    $user_id: uuid!
+    $gcs_path: String!
+    $file_name: String!
+    $content_type: String!
+    $size_bytes: bigint
+    $duration_seconds: numeric
+  ) {
+    insert_video_uploads_one(
+      object: { 
+        user_id: $user_id
+        gcs_path: $gcs_path
+        file_name: $file_name
+        content_type: $content_type
+        size_bytes: $size_bytes
+        duration_seconds: $duration_seconds
+      }
+    ) {
+      id
+    }
+  }
+`;

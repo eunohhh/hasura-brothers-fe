@@ -538,3 +538,24 @@ export const GET_INVITATION_COMMENTS = gql`
     }
   }
 `;
+
+// ============================================================================
+// Video Upload Queries
+// ============================================================================
+
+export const GET_VIDEO_UPLOAD = gql`
+  query GetVideoUpload($id: uuid!) {
+    video_uploads_by_pk(id: $id) {
+      id
+      user_id
+      status
+      gcs_path
+      file_name
+      content_type
+      size_bytes
+      duration_seconds
+      created_at
+      updated_at
+    }
+  }
+`;
